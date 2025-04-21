@@ -1,46 +1,43 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { ShoppingBag, Tag } from "lucide-react"
-import SearchBar from "./SearchBar"
+import Link from 'next/link';
+import { ShoppingBag, Tag } from 'lucide-react';
+import SearchBar from './SearchBar';
+import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
 
 export default function Navbar() {
+    const pathname = usePathname();
+    const active = (p: string) =>
+        clsx(
+            'flex items-center gap-1.5 border-b-2 pb-0.5',
+            pathname.startsWith(p)
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-600 hover:text-primary'
+        );
+
     return (
-        <section className="w-full h-20 flex justify-center items-center shadow bg-white sticky top-0 z-50">
-            <div className="w-full max-w-6xl mx-auto flex items-center justify-between px-4">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
-                    <img src="/next.svg" alt="Logo" width={100} height={40} className="object-contain" />
-                    {/* <span className="font-bold text-teal-600 text-xl hidden sm:inline-block">CouponHub</span> */}
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur shadow-sm">
+            <div className="max-w-7xl mx-auto h-16 px-4 flex items-center gap-8">
+                <Link href="/" className="text-xl font-semibold text-primary">
+                    CouponHub
                 </Link>
 
-                {/* Nav */}
-                <div className="flex-1 max-w-xl ml-6">
-                    <ul className="flex gap-x-6 items-center justify-end">
-                        <li className="hidden md:flex">
-                            <Link
-                                href="/stores"
-                                className="flex items-center gap-1.5 font-medium text-gray-700 hover:text-teal-600 transition-colors"
-                            >
-                                <ShoppingBag size={18} />
-                                <span>Stores</span>
-                            </Link>
-                        </li>
-                        <li className="hidden md:flex">
-                            <Link
-                                href="/coupons"
-                                className="flex items-center gap-1.5 font-medium text-gray-700 hover:text-teal-600 transition-colors"
-                            >
-                                <Tag size={18} />
-                                <span>Coupons</span>
-                            </Link>
-                        </li>
-                        <li className="flex-1">
-                            <SearchBar placeholder="Search for coupons..." className="w-full" />
-                        </li>
-                    </ul>
+                <nav className="hidden md:flex items-center gap-6">
+                    <Link href="/stores" className={active('/stores')}>
+                        <ShoppingBag size={18} />
+                        Stores
+                    </Link>
+                    <Link href="/coupons" className={active('/coupons')}>
+                        <Tag size={18} />
+                        Coupons
+                    </Link>
+                </nav>
+
+                <div className="flex-1">
+                    <SearchBar placeholder="Search coupons or stores…" />
                 </div>
             </div>
-        </section>
-    )
+        </header>
+    );
 }

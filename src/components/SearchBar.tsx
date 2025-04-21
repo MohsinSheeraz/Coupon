@@ -1,41 +1,35 @@
-"use client"
+'use client';
 
-import { useState, type FormEvent } from "react"
-import { Search } from "lucide-react"
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import debounce from 'lodash.debounce';
 
-interface SearchBarProps {
-    placeholder?: string
-    onSearch?: (query: string) => void
-    className?: string
-}
+export default function SearchBar({ placeholder }: { placeholder: string }) {
+    const router = useRouter();
+    const params = useSearchParams();
+    const [term, setTerm] = useState(params.get('q') ?? '');
 
-export default function SearchBar({ placeholder = "Search...", onSearch, className = "" }: SearchBarProps) {
-    const [query, setQuery] = useState("")
+    const updateSearch = debounce((q: string) => {
+        const url = q ? `/coupons?q=${encodeURIComponent(q)}` : '/coupons';
+        router.push(url);
+    }, 400);
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (onSearch) {
-            onSearch(query)
-        }
-    }
+    useEffect(() => {
+        updateSearch(term);
+        return () => updateSearch.cancel();
+    }, [term]);
 
     return (
-        <form onSubmit={handleSubmit} className={`relative flex items-center ${className}`}>
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted" />
             <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                type="search"
                 placeholder={placeholder}
-                className="w-full px-4 py-2 pr-10 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400 transition-all"
-                aria-label="Search"
+                value={term}
+                onChange={e => setTerm(e.target.value)}
+                className="w-full rounded-md border border-muted/40 py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <button
-                type="submit"
-                className="absolute right-3 text-gray-400 hover:text-teal-600 transition-colors"
-                aria-label="Submit search"
-            >
-                <Search size={18} />
-            </button>
-        </form>
-    )
+        </div>
+    );
 }
