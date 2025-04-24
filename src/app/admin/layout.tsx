@@ -1,13 +1,15 @@
-export const metadata = { title: 'Admin | CouponHub' };
+import type React from "react"
+import { Sidebar } from "@/components/admin/sidebar"
 
 export default function AdminLayout({
     children,
 }: {
-    children: React.ReactNode;
+    children: React.ReactNode
 }) {
     return (
-        <>
-            <main className="max-w-6xl mx-auto px-4 py-10">{children}</main>
-        </>
-    );
+        <div className="flex min-h-screen bg-gray-100">
+            <Sidebar />
+            <div className="flex-1 p-8">{children}</div>
+        </div>
+    )
 }

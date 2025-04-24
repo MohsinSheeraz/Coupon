@@ -1,96 +1,67 @@
-'use client';
-import useSWR from 'swr';
-import { useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import Link from "next/link"
+import { getAllCoupons } from "@/lib/data"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Plus, Edit, Trash } from "lucide-react"
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-
-export default function AdminCoupons() {
-    const { data: coupons, mutate, isLoading } = useSWR('/api/coupons', fetcher);
-    const [form, setForm] = useState({
-        name: '',
-        slug: '',
-        logoUrl: '',
-        domain: '',
-        description: '',
-    });
-    const [saved, setSaved] = useState(false);
-
-    async function onSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        await fetch('/api/coupons', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form),
-        });
-        setForm({ name: '', slug: '', logoUrl: '', domain: '', description: '' });
-        setSaved(true);
-        mutate();
-        setTimeout(() => setSaved(false), 1800);
-    }
+export default async function AdminCouponsPage() {
+    const coupons = await getAllCoupons()
 
     return (
-        <section className="space-y-10">
-            <h1 className="text-3xl font-bold">Coupons</h1>
-
-            {/* form */}
-            <form
-                onSubmit={onSubmit}
-                className="bg-white rounded-xl shadow-md p-8 grid gap-6 md:grid-cols-2"
-            >
-                {(Object.keys(form) as (keyof typeof form)[]).map(key => (
-                    <div key={key} className="space-y-1">
-                        <label className="font-medium capitalize">{key}</label>
-                        <input
-                            required={key !== 'domain' && key !== 'description'}
-                            value={form[key]}
-                            onChange={e => setForm({ ...form, [key]: e.target.value })}
-                            className="w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary"
-                        />
-                    </div>
-                ))}
-
-                <button className="btn md:col-span-2">
-                    {saved ? (
-                        <>
-                            <CheckCircle2 size={18} /> Saved
-                        </>
-                    ) : (
-                        'Add Coupon'
-                    )}
-                </button>
-            </form>
-
-            {/* list */}
-            <div className="bg-white rounded-xl shadow-md overflow-x-auto">
-                <table className="min-w-full text-sm">
-                    <thead className="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th className="p-3 text-left">Logo</th>
-                            <th className="p-3 text-left">Name</th>
-                            <th className="p-3 text-left">Slug</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {isLoading && (
-                            <tr>
-                                <td colSpan={3} className="p-4 text-center">
-                                    Loading…
-                                </td>
-                            </tr>
-                        )}
-                        {coupons?.map((s: any) => (
-                            <tr key={s._id} className="border-t hover:bg-gray-50">
-                                <td className="p-3">
-                                    <img src={s.logoUrl} alt="" className="h-6" />
-                                </td>
-                                <td className="p-3">{s.name}</td>
-                                <td className="p-3">{s.slug}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <div>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold">Coupons</h1>
+                <Link href="/admin/coupons/new">
+                    <Button className="bg-teal-600 hover:bg-teal-700">
+                        <Plus className="h-4 w-4 mr-2" /> Add Coupon
+                    </Button>
+                </Link>
             </div>
-        </section>
-    );
+
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Store</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Code</TableHead>
+                            <TableHead>Expiry Date</TableHead>
+                            <TableHead>Usage</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {coupons.map((coupon) => (
+                            <TableRow key={coupon.id}>
+                                <TableCell className="font-medium">{coupon.title}</TableCell>
+                                <TableCell>{coupon.store?.name}</TableCell>
+                                <TableCell>
+                                    <span
+                                        className={`px-2 py-1 rounded-full text-xs ${coupon.type === "code" ? "bg-teal-100 text-teal-800" : "bg-purple-100 text-purple-800"
+                                            }`}
+                                    >
+                                        {coupon.type === "code" ? "Code" : "Deal"}
+                                    </span>
+                                </TableCell>
+                                <TableCell>{coupon.code || "-"}</TableCell>
+                                <TableCell>{new Date(coupon.expiryDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{coupon.usedCount}</TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="outline" size="sm">
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700">
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    )
 }

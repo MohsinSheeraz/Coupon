@@ -1,51 +1,51 @@
-import CouponCard from '@/components/CouponCard';
-import { dbConnect } from '@/lib/mongodb';
-import { Coupon as CouponModel } from '@/models/Coupon';
-import { Coupon as CouponType } from '@/types/coupon';
-import { Metadata } from 'next';
+import { getAllCoupons } from "@/lib/data"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CouponCard } from "@/components/coupon-card"
 
-export const metadata: Metadata = { title: 'Coupons | CouponHub' };
+export default async function CouponsPage() {
+    const coupons = await getAllCoupons()
 
-interface PageProps {
-    searchParams: { q?: string; store?: string };
-}
-
-export default async function CouponsPage({ searchParams }: PageProps) {
-    await dbConnect();
-
-    const filter: Record<string, any> = { isActive: true };
-    if (searchParams?.q)
-        filter.title = { $regex: searchParams.q, $options: 'i' };
-    if (searchParams?.store) filter.store = searchParams.store;
-
-    const rawCoupons = await CouponModel.find(filter)
-        .sort({ createdAt: -1 })
-        .populate('store', 'name slug logoUrl')
-        .lean();
-
-    const coupons: CouponType[] = rawCoupons.map((c: any) => ({
-        ...c,
-        _id: c._id.toString(),
-        store: { ...c.store, _id: c.store._id.toString() },
-    }));
+    // Group coupons by type
+    const codeCoupons = coupons.filter((coupon) => coupon.type === "code")
+    const dealCoupons = coupons.filter((coupon) => coupon.type === "deal")
 
     return (
-        <main className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-semibold mb-6">
-                {searchParams?.q
-                    ? `Results for “${searchParams.q}”`
-                    : 'Latest Coupons'}
-            </h1>
-
-            {!coupons.length && (
-                <p className="text-muted">No coupons found – try another search.</p>
-            )}
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {coupons.map(coupon => (
-                    <CouponCard key={coupon._id} coupon={coupon} />
-                ))}
+        <div className="container mx-auto px-4 py-12">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold mb-4">All Coupons</h1>
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Browse our collection of verified coupons and deals from top stores
+                </p>
             </div>
-        </main>
-    );
+
+            <Tabs defaultValue="all" className="mb-8">
+                <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="codes">Codes</TabsTrigger>
+                    <TabsTrigger value="deals">Deals</TabsTrigger>
+                </TabsList>
+                <TabsContent value="all">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                        {coupons.map((coupon) => (
+                            <CouponCard key={coupon._id?.toString()} coupon={coupon} />
+                        ))}
+                    </div>
+                </TabsContent>
+                <TabsContent value="codes">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                        {codeCoupons.map((coupon) => (
+                            <CouponCard key={coupon._id?.toString()} coupon={coupon} />
+                        ))}
+                    </div>
+                </TabsContent>
+                <TabsContent value="deals">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                        {dealCoupons.map((coupon) => (
+                            <CouponCard key={coupon._id?.toString()} coupon={coupon} />
+                        ))}
+                    </div>
+                </TabsContent>
+            </Tabs>
+        </div>
+    )
 }

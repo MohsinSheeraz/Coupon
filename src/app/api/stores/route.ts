@@ -1,16 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '@/lib/mongodb';
-import { Store } from '@/models/Store';
+import { NextResponse } from "next/server"
+import { getAllStores } from "@/lib/data"
 
 export async function GET() {
-    await dbConnect();
-    const stores = await Store.find().sort({ name: 1 }).lean();
-    return NextResponse.json(stores);
-}
-
-export async function POST(req: NextRequest) {
-    const data = await req.json();
-    await dbConnect();
-    const created = await Store.create(data);
-    return NextResponse.json(created, { status: 201 });
+    try {
+        const stores = await getAllStores()
+        return NextResponse.json(stores)
+    } catch (error) {
+        console.error("Error fetching stores:", error)
+        return NextResponse.json({ error: "Failed to fetch stores" }, { status: 500 })
+    }
 }
