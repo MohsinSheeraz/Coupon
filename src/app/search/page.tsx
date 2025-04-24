@@ -1,17 +1,22 @@
-import { searchCouponsAndStores } from "@/lib/data"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tag, Percent, Store } from "lucide-react"
-import Link from "next/link"
+import { searchCouponsAndStores } from '@/lib/data'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Tag, Percent, Store } from 'lucide-react'
+import Link from 'next/link'
+
+// 👇  add this line (or rename it however you like)
+type SearchParams = Record<string, string | string[] | undefined>
 
 export default async function SearchPage({
     searchParams,
 }: {
-    // Next.js wants this exact shape; q may be string | string[] | undefined
-    searchParams?: Record<string, string | string[] | undefined>
+    // Next.js wants a *Promise* here:
+    searchParams?: Promise<SearchParams>
 }) {
-    const raw = searchParams?.q
-    const query = Array.isArray(raw) ? raw[0] ?? "" : raw ?? ""
+    const sp = (await searchParams) ?? {}
+    const raw = sp.q
+    const query = Array.isArray(raw) ? raw[0] ?? '' : raw ?? ''
+
     const { coupons, stores } = await searchCouponsAndStores(query)
 
     return (

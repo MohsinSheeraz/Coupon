@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
+import Link from "next/link"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -49,9 +50,8 @@ export default function RootLayout({
                         </a>
                       </li>
                       <li>
-                        <a href="/stores" className="text-gray-600 hover:text-gray-900">
-                          Stores
-                        </a>
+
+                        <Link href="/stores" className="text-gray-600 hover:text-gray-900">Stores</Link>
                       </li>
                     </ul>
                   </div>
