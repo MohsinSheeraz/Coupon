@@ -23,7 +23,7 @@ function StoreGrid({ stores }: { stores: any[] }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {stores.map((store) => (
-                <Link key={store.id} href={`/stores/${store.slug}`}>
+                <Link key={store.id ?? store._id?.toString?.() ?? store.slug} href={`/stores/${store.slug}`}>
                     <Card className="hover:shadow-md transition-shadow h-full">
                         <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
                             <div className="h-20 w-20 rounded-full bg-white border flex items-center justify-center mb-4">

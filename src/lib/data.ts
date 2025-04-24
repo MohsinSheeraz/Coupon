@@ -1,6 +1,39 @@
+"use server"
 import clientPromise from "./mongodb"
 import { ObjectId } from "mongodb"
 import type { Store, Coupon, SiteSettings } from "@/lib/models"
+
+// ─┐ helpers
+const toStr = (v: any) => (typeof v === "string" ? v : v?.toString?.() ?? "");
+
+function serialiseDates<T extends Record<string, any>>(doc: T) {
+    return Object.fromEntries(
+        Object.entries({ ...doc }).map(([k, v]) =>
+            v instanceof Date ? [k, v.toISOString()] : [k, v],
+        ),
+    ) as T;
+}
+
+function transformCoupon(c: any) {
+    return serialiseDates({
+        ...c,
+        id: toStr(c._id),
+        _id: undefined,
+        storeId: toStr(c.storeId),
+    });
+}
+
+function transformStore(s: any) {
+    return serialiseDates({
+        ...s,
+        id: toStr(s._id),
+        _id: undefined,
+    });
+}
+// ─┘
+
+
+
 
 // Get MongoDB collections
 async function getCollections() {
@@ -17,22 +50,32 @@ async function getCollections() {
 // Store functions
 export async function getAllStores(): Promise<Store[]> {
     const { stores } = await getCollections()
-    return await stores.find({}).sort({ name: 1 }).toArray()
+    return (
+        await stores.find({}).sort({ name: 1 }).toArray()
+    ).map(transformStore)
 }
 
 export async function getStoreBySlug(slug: string): Promise<Store | null> {
     const { stores } = await getCollections()
-    return await stores.findOne({ slug })
+    const store = await stores.findOne({ slug })
+    return store ? transformStore(store) : null
 }
 
 export async function getStoreById(id: string): Promise<Store | null> {
     const { stores } = await getCollections()
-    return await stores.findOne({ _id: new ObjectId(id) })
+    const store = await stores.findOne({ _id: new ObjectId(id) })
+    return store ? transformStore(store) : null
 }
 
 export async function getPopularStores(limit = 6): Promise<Store[]> {
     const { stores } = await getCollections()
-    return await stores.find({}).sort({ couponCount: -1 }).limit(limit).toArray()
+    return (
+        await stores
+            .find({})
+            .sort({ couponCount: -1 })
+            .limit(limit)
+            .toArray()
+    ).map(transformStore)
 }
 
 export async function createStore(store: Omit<Store, "_id" | "createdAt" | "updatedAt">): Promise<Store> {
@@ -100,7 +143,7 @@ export async function getAllCoupons(): Promise<Coupon[]> {
         }),
     )
 
-    return populatedCoupons
+    return populatedCoupons.map(transformCoupon)
 }
 
 export async function getCouponsByStore(storeId: string): Promise<Coupon[]> {
@@ -109,29 +152,36 @@ export async function getCouponsByStore(storeId: string): Promise<Coupon[]> {
 
     const store = await stores.findOne({ _id: new ObjectId(storeId) })
 
-    return storeCoupons.map((coupon) => ({
-        ...coupon,
-        store: store
-            ? {
-                id: store._id.toString(),
-                name: store.name,
-                slug: store.slug,
-                logo: store.logo,
-            }
-            : undefined,
-    }))
+    return storeCoupons.map((coupon) =>
+        transformCoupon({
+            ...coupon,
+            store: store
+                ? {
+                    id: store._id.toString(),
+                    name: store.name,
+                    slug: store.slug,
+                    logo: store.logo,
+                }
+                : undefined,
+        }),
+    )
+
 }
 
 export async function getTrendingCoupons(limit = 6): Promise<Coupon[]> {
     const { coupons, stores } = await getCollections()
-    const trendingCoupons = await coupons.find({}).sort({ usedCount: -1 }).limit(limit).toArray()
 
-    // Populate store information
-    const populatedCoupons = await Promise.all(
-        trendingCoupons.map(async (coupon) => {
-            const store = await stores.findOne({ _id: new ObjectId(coupon.storeId.toString()) })
+    const trendingCoupons = await coupons
+        .find({})
+        .sort({ usedCount: -1 })
+        .limit(limit)
+        .toArray()
+
+    const populated = await Promise.all(
+        trendingCoupons.map(async (c) => {
+            const store = await stores.findOne({ _id: new ObjectId(c.storeId.toString()) })
             return {
-                ...coupon,
+                ...c,
                 store: store
                     ? {
                         id: store._id.toString(),
@@ -144,7 +194,7 @@ export async function getTrendingCoupons(limit = 6): Promise<Coupon[]> {
         }),
     )
 
-    return populatedCoupons
+    return populated.map(transformCoupon)   // <-- now 100 % plain
 }
 
 export async function createCoupon(coupon: Omit<Coupon, "_id" | "createdAt" | "updatedAt">): Promise<Coupon> {
@@ -258,8 +308,8 @@ export async function searchCouponsAndStores(query: string): Promise<{
     )
 
     return {
-        coupons: populatedCoupons,
-        stores: matchedStores,
+        coupons: populatedCoupons.map(transformCoupon),
+        stores: matchedStores.map(transformStore),
     }
 }
 

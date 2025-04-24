@@ -18,9 +18,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+
+      suppressHydrationWarning
+    >
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>

@@ -125,11 +125,13 @@ export default function NewCouponPage() {
                                             <SelectValue placeholder="Select a store" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {stores.map((store) => (
-                                                <SelectItem key={store._id?.toString()} value={store._id?.toString() || ""}>
-                                                    {store.name}
-                                                </SelectItem>
-                                            ))}
+                                            {stores
+                                                .filter((s) => s.id)                  // skip any malformed docs
+                                                .map((store) => (
+                                                    <SelectItem key={store.id!} value={store.id as string}>
+                                                        {store.name}
+                                                    </SelectItem>
+                                                ))}
                                         </SelectContent>
                                     </Select>
                                 </div>

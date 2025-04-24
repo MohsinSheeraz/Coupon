@@ -7,9 +7,11 @@ import Link from "next/link"
 export default async function SearchPage({
     searchParams,
 }: {
-    searchParams: { q: string }
+    // Next.js wants this exact shape; q may be string | string[] | undefined
+    searchParams?: Record<string, string | string[] | undefined>
 }) {
-    const query = searchParams.q || ""
+    const raw = searchParams?.q
+    const query = Array.isArray(raw) ? raw[0] ?? "" : raw ?? ""
     const { coupons, stores } = await searchCouponsAndStores(query)
 
     return (
@@ -56,13 +58,13 @@ export default async function SearchPage({
                                     <div className="flex items-center mb-4">
                                         <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mr-4">
                                             <img
-                                                src={coupon.store.logo || "/placeholder.svg"}
-                                                alt={coupon.store.name}
+                                                src={coupon.store?.logo ?? "/placeholder.svg"}
+                                                alt={coupon.store?.name ?? "Store logo"}
                                                 className="h-8 w-8 object-contain"
                                             />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold">{coupon.store.name}</h3>
+                                            <h3 className="font-semibold">{coupon.store?.name ?? "Unknown"}</h3>
                                             <p className="text-sm text-gray-500">Verified {coupon.verifiedTime}</p>
                                         </div>
                                     </div>

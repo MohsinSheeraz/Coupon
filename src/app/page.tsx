@@ -67,7 +67,7 @@ export default async function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {trendingCoupons.map((coupon) => (
-              <CouponCard key={coupon._id?.toString()} coupon={coupon} />
+              <CouponCard key={coupon.id} coupon={coupon} />
             ))}
           </div>
         </div>
@@ -84,7 +84,7 @@ export default async function Home() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {popularStores.map((store) => (
-              <Link key={store._id?.toString()} href={`/stores/${store.slug}`}>
+              <Link key={store.id} href={`/stores/${store.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
                   <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
                     <div className="h-16 w-16 rounded-full bg-white border flex items-center justify-center mb-4">
