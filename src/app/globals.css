@@ -1,0 +1,207 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+/* ── Brand tokens (new names, so nothing existing is redefined) ───────── */
+@theme {
+  --color-ink: #17132e;
+  --color-paper: #f6f5fb;
+  --color-mist: #e6e3f4;
+  --color-grape: #5b3df5;
+  --color-grape-deep: #4326d4;
+  --color-citrus: #ffd23f;
+  --color-mint: #14a37f;
+}
+
+@theme inline {
+  --font-sans: var(--font-body-src), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-src), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 250 43% 97%;
+    --foreground: 249 41% 13%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 249 41% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 249 41% 13%;
+
+    --primary: 249 41% 13%;
+    --primary-foreground: 250 43% 97%;
+
+    --secondary: 251 44% 92%;
+    --secondary-foreground: 249 41% 13%;
+
+    --muted: 251 44% 94%;
+    --muted-foreground: 249 14% 40%;
+
+    --accent: 251 44% 92%;
+    --accent-foreground: 249 41% 13%;
+
+    --destructive: 0 78% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 251 30% 89%;
+    --input: 251 30% 86%;
+    --ring: 250 90% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body-src), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--color-grape);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-citrus);
+    color: var(--color-ink);
+  }
+}
+
+/* ── Coupon ticket ─────────────────────────────────────────────────────
+   The card is a white ticket with two circular notches cut out at the tear
+   line. The shadow lives on the wrapper (.ticket-shell) so it follows the
+   notched outline instead of the bounding box. */
+@layer components {
+  .ticket-shell {
+    filter: drop-shadow(0 1px 0 rgb(23 19 46 / 0.04))
+      drop-shadow(0 8px 18px rgb(23 19 46 / 0.07));
+    transition:
+      transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+      filter 0.4s ease;
+  }
+  .ticket-shell:hover {
+    transform: translateY(-4px);
+    filter: drop-shadow(0 1px 0 rgb(23 19 46 / 0.04))
+      drop-shadow(0 16px 26px rgb(91 61 245 / 0.2));
+  }
+
+  .ticket {
+    --notch: 11px;
+    --cut: 92px;
+    background: #fff;
+    border-radius: 1.25rem;
+    -webkit-mask:
+      radial-gradient(circle at 0 var(--cut), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% var(--cut), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle at 0 var(--cut), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% var(--cut), #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) right / 51% 100% no-repeat;
+  }
+
+  .ticket-perf {
+    position: absolute;
+    left: 1.4rem;
+    right: 1.4rem;
+    top: var(--cut);
+    border-top: 2px dashed rgb(23 19 46 / 0.14);
+    pointer-events: none;
+  }
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ticket-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hero-zoom {
+  from { transform: scale(1.09); }
+  to   { transform: scale(1); }
+}
+@keyframes bar-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* `backwards` (not `both`) so hover transforms still work after the entrance */
+.anim-rise {
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.hero-zoom  { animation: hero-zoom 7s ease-out forwards; }
+.hero-bar   { animation: bar-fill 5000ms linear forwards; }
+.anim-pop   { animation: pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.anim-menu  { animation: menu-in 0.28s ease-out; }
+
+/* Cards fade in with a short stagger the first time a grid appears */
+.stagger > * {
+  animation: ticket-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+.stagger > *:nth-child(7) { animation-delay: 360ms; }
+.stagger > *:nth-child(8) { animation-delay: 420ms; }
+.stagger > *:nth-child(n + 9) { animation-delay: 480ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .anim-rise, .hero-zoom, .hero-bar, .anim-pop, .anim-menu, .stagger > * {
+    animation: none !important;
+  }
+  .ticket-shell, .ticket-shell:hover { transition: none; transform: none; }
+}
