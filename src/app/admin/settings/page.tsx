@@ -35,7 +35,7 @@ export default function SettingsPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const response = await fetch("/api/settings")
+                const response = await fetch("/api/admin/settings")
                 if (!response.ok) throw new Error("Failed to fetch settings")
                 const data = await response.json()
                 setSettings(data)
