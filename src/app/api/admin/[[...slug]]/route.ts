@@ -1,53 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings } from "@/lib/data";
+import {
+  ADMIN_USERNAME,
+  ADMIN_PASSWORD,
+  COOKIE_NAME,
+  makeToken,
+} from "@/lib/auth";
 
-// Hard-coded admin credentials (no longer read from .env)
-const ADMIN_USERNAME = "AdminUser@gmail.com";
-const ADMIN_PASSWORD = "AdminUserPassword";
+type Ctx = { params: Promise<{ slug?: string[] }> };
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ slug?: string[] }> },
-) {
+export async function POST(req: NextRequest, { params }: Ctx) {
   const { slug } = await params;
-  const routeArray = slug || [];
+  const route = slug?.[0];
 
-  // Case A: /api/admin/login
-  if (routeArray[0] === "login") {
-    const { user, pass } = await req.json();
-    if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-        const res = NextResponse.json({ ok: true });
-        res.cookies.set({
-            name: "admin-auth",
-            value: "1",
-            path: "/admin",
-            httpOnly: true,
-            maxAge: 15 * 60, // 15 minutes
-        });
-        return res;
+  // POST /api/admin/login
+  if (route === "login") {
+    let body: { user?: string; pass?: string } = {};
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
     }
-    
-    // ⬇️ Fix: Return an explicit error on authentication failure
-    return NextResponse.json({ ok: false, error: "Invalid credentials" }, { status: 401 });
+
+    if (body.user === ADMIN_USERNAME && body.pass === ADMIN_PASSWORD) {
+      const res = NextResponse.json({ ok: true });
+      res.cookies.set({
+        name: COOKIE_NAME,
+        value: await makeToken(),
+        path: "/", // "/" so both /admin pages and /api/admin routes receive it
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production", // HTTPS in deployment
+        maxAge: 15 * 60,
+      });
+      return res;
+    }
+    return NextResponse.json(
+      { ok: false, error: "Invalid credentials" },
+      { status: 401 },
+    );
   }
 
-  // Case B: /api/admin/settings
-  if (routeArray[0] === "settings") {
+  // POST /api/admin/logout
+  if (route === "logout") {
+    const res = NextResponse.json({ ok: true });
+    res.cookies.set({ name: COOKIE_NAME, value: "", path: "/", maxAge: 0 });
+    return res;
+  }
+
+  // POST /api/admin/settings (protected by middleware)
+  if (route === "settings") {
     return NextResponse.json({ saved: true });
   }
 
   return NextResponse.json({ error: "Not Found" }, { status: 404 });
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ slug?: string[] }> },
-) {
+export async function GET(_req: NextRequest, { params }: Ctx) {
   const { slug } = await params;
-  const routeArray = slug || [];
 
-  // Case C: /api/admin/settings GET logic
-  if (routeArray[0] === "settings") {
+  if (slug?.[0] === "settings") {
     try {
       const settings = await getSettings();
       return NextResponse.json(settings);
@@ -58,7 +70,6 @@ export async function GET(
         { status: 500 },
       );
     }
-    // ⬇️ Removed the unreachable line from here
   }
 
   return NextResponse.json({ error: "Not Found" }, { status: 404 });

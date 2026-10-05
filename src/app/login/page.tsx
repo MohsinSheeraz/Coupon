@@ -1,26 +1,36 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 
 export default function AdminLoginPage() {
   const [user, setUser] = useState("")
   const [pass, setPass] = useState("")
   const [error, setError] = useState("")
-  const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user, pass }),
-    })
-    if (res.ok) {
-      router.replace("/admin")
-    } else {
-      setError("Invalid credentials")
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ user, pass }),
+      })
+
+      if (res.ok) {
+        // Hard navigation: guarantees the new cookie is sent and avoids
+        // Next's client router cache serving a stale /admin redirect.
+        window.location.assign("/admin")
+        return
+      }
+      setError(res.status === 401 ? "Invalid credentials" : `Server error (${res.status})`)
+    } catch {
+      setError("Network error. Please try again.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -39,6 +49,7 @@ export default function AdminLoginPage() {
           <input
             id="username"
             type="text"
+            autoComplete="username"
             value={user}
             onChange={(e) => setUser(e.target.value)}
             required
@@ -54,6 +65,7 @@ export default function AdminLoginPage() {
           <input
             id="password"
             type="password"
+            autoComplete="current-password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             required
@@ -66,9 +78,10 @@ export default function AdminLoginPage() {
 
         <button
           type="submit"
-          className="w-full py-2 font-semibold text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition cursor-pointer"
+          disabled={loading}
+          className="w-full py-2 font-semibold text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition cursor-pointer disabled:opacity-60"
         >
-          Sign In
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
     </div>
