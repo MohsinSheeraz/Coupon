@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings } from "@/lib/data";
 
+// Hard-coded admin credentials (no longer read from .env)
+const ADMIN_USERNAME = "AdminUser@gmail.com";
+const ADMIN_PASSWORD = "AdminUserPassword";
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug?: string[] }> },
@@ -11,7 +15,7 @@ export async function POST(
   // Case A: /api/admin/login
   if (routeArray[0] === "login") {
     const { user, pass } = await req.json();
-    if (user === process.env.ADMIN_USER && pass === process.env.ADMIN_PASS) {
+    if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
         const res = NextResponse.json({ ok: true });
         res.cookies.set({
             name: "admin-auth",

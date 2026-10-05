@@ -77,9 +77,9 @@ export default function NewStorePage() {
         setLoading(true)
 
         try {
-            // Validate form: only name & affiliateLink are required
-            if (!formData.name || !formData.affiliateLink) {
-                throw new Error("Please fill in both Store Name and Affiliate Link")
+            // Validate form: only the store name is required
+            if (!formData.name.trim()) {
+                throw new Error("Please enter a Store Name")
             }
 
             // For a real implementation, you would upload the logo file to a storage service
