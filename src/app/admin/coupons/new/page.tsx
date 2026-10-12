@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { createCoupon } from "@/lib/action"
 import type { Store } from "@/lib/models"
-import { LinkIcon, Upload, ImageIcon, X } from "lucide-react"
+import { LinkIcon, Upload, ImageIcon, X, Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function NewCouponPage() {
@@ -31,6 +31,7 @@ export default function NewCouponPage() {
     const [logoFile, setLogoFile] = useState<File | null>(null)
     const [logoPreview, setLogoPreview] = useState<string>("")
     const [logoTab, setLogoTab] = useState<string>("upload")
+    const [storesLoading, setStoresLoading] = useState(true)
 
     useEffect(() => {
         // Fetch stores for the dropdown
@@ -39,13 +40,15 @@ export default function NewCouponPage() {
                 const response = await fetch("/api/stores")
                 if (!response.ok) throw new Error("Failed to fetch stores")
                 const data = await response.json()
-                setStores(data)
+                setStores(Array.isArray(data) ? data : [])
             } catch (error) {
                 console.error("Error fetching stores:", error)
                 toast.error("Failed to load stores. Please try again.")
+            } finally {
+                setStoresLoading(false)
             }
-        }
 
+        }
         fetchStores()
     }, [])
 
@@ -142,16 +145,26 @@ export default function NewCouponPage() {
                                         name="storeId"
                                         value={formData.storeId}
                                         onValueChange={(value) => handleSelectChange("storeId", value)}
+                                        disabled={storesLoading}
                                         required
                                     >
-                                        <SelectTrigger className="mt-1.5">
-                                            <SelectValue placeholder="Select a store" />
+                                        <SelectTrigger className="mt-1.5 cursor-pointer">
+                                            {storesLoading ? (
+                                                <span className="flex items-center gap-2 text-muted-foreground">
+                                                    <Loader2 className="h-4 w-4 animate-spin" /> Loading stores...
+                                                </span>
+                                            ) : (
+                                                <SelectValue className="cursor-pointer" placeholder="Select a store" />
+                                            )}
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="cursor-pointer">
+                                            {stores.length === 0 && (
+                                                <div className="px-2 py-1.5 text-sm text-muted-foreground">No stores yet. Create one first.</div>
+                                            )}
                                             {stores
                                                 .filter((s) => s.id) // skip any malformed docs
                                                 .map((store) => (
-                                                    <SelectItem key={store.id!} value={store.id as string}>
+                                                    <SelectItem key={store.id!} value={store.id as string} className="cursor-pointer">
                                                         {store.name}
                                                     </SelectItem>
                                                 ))}
@@ -293,11 +306,15 @@ export default function NewCouponPage() {
                         </div>
 
                         <div className="flex justify-end gap-4 pt-4 border-t mt-6">
-                            <Button type="button" variant="outline" onClick={() => router.back()}>
+                            <Button type="button" className="cursor-pointer" variant="outline" onClick={() => router.back()}>
                                 Cancel
                             </Button>
-                            <Button type="submit" className="bg-teal-600 hover:bg-teal-700" disabled={loading}>
-                                {loading ? "Saving..." : "Save Coupon"}
+                            <Button type="submit" className="bg-teal-600 hover:bg-teal-700 cursor-pointer" disabled={loading}>
+                                {loading ? (
+                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                                ) : (
+                                    "Save Deal"
+                                )}
                             </Button>
                         </div>
                     </form>
