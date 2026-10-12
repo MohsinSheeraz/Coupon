@@ -84,8 +84,8 @@ export default function Footer() {
                         <div>
                             <h3 className="mb-4 font-display text-base font-semibold text-white">Contact</h3>
                             <ul className="space-y-2.5">
-                                <li>support@couponhub.com</li>
-                                <li>1-800-COUPONS</li>
+                            <li><a href="mailto:support@dealzycoup.com">support@dealzycoup.com</a></li>
+                            <li><a href="tel:+923121069685">+92 312 1069685</a></li>
                             </ul>
                         </div>
                     </div>

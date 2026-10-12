@@ -2,13 +2,16 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Search, Menu, X, Ticket } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Search, Menu, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import LOGO from "./../../public/LogoMain.png";
+
 
 const links = [
     { href: "/", label: "Home" },
@@ -61,12 +64,10 @@ export default function Navbar() {
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
                     <Link href="/" className="group flex items-center gap-2.5">
-                        <span className="grid size-9 place-items-center rounded-xl bg-grape text-white shadow-[0_6px_16px_-6px_rgb(91_61_245/0.7)] transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-105">
+                        {/* <span className="grid size-9 place-items-center rounded-xl bg-grape text-white shadow-[0_6px_16px_-6px_rgb(91_61_245/0.7)] transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-105">
                             <Ticket className="size-5" />
-                        </span>
-                        <span className="font-display text-2xl font-semibold tracking-tight text-ink">
-                            CouponHub
-                        </span>
+                        </span> */}
+                        <Image src={LOGO} height={200} width={200} alt="" />
                     </Link>
 
                     <form onSubmit={handleSearch} className="mx-8 hidden max-w-md flex-1 items-center md:flex">
@@ -77,12 +78,12 @@ export default function Navbar() {
                             <Input
                                 type="search"
                                 placeholder="Search for stores or coupons..."
-                                className="h-10 w-full rounded-full border-ink/10 bg-white pl-10 shadow-none transition-all duration-300 focus-visible:border-grape focus-visible:ring-grape/25"
+                                className="h-10 w-full rounded-full border-ink/10 bg-white! text-black pl-10 shadow-none transition-all duration-300 focus-visible:border-grape focus-visible:ring-grape/25"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:cursor-pointer hover:bg-grape">
+                        <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:cursor-pointer hover:bg-grape text-white">
                             Search
                         </Button>
                     </form>
