@@ -3,13 +3,14 @@ import React from 'react'
 import { Ticket } from 'lucide-react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
-import { CATEGORY_TILES, NEWSLETTER_IMAGE } from '@/lib/images'
+import { CATEGORY_TILES  } from '@/lib/images'
+// import { NEWSLETTER_IMAGE } from '@/lib/images'
 
 export default function Footer() {
     return (
         <>
             {/* Newsletter */}
-            <section
+            {/* <section
                 className="relative isolate overflow-hidden bg-cover bg-center py-20 text-white"
                 style={{
                     backgroundImage: `linear-gradient(90deg, rgb(23 19 46 / 0.94) 0%, rgb(23 19 46 / 0.6) 100%), url("${NEWSLETTER_IMAGE}"), linear-gradient(135deg, #5b3df5, #17132e)`,
@@ -35,7 +36,7 @@ export default function Footer() {
                         </form>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             <footer className="bg-ink py-14 text-white/65">
                 <div className="container mx-auto px-4">
