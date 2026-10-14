@@ -62,6 +62,7 @@ export interface Deal {
     _id?: ObjectId | string
     id?: string
     title: string
+    logo?: string
     affiliateLink: string
     expiryDate: string
     verifiedTime: string

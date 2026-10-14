@@ -47,7 +47,7 @@ export function Sidebar() {
         >
             <div className="p-6 flex justify-between items-center">
                 <Link href="/admin" className="flex items-center">
-                    {!collapsed && <span className="text-2xl font-bold text-brand-400">CouponHub</span>}
+                    {!collapsed && <span className="text-2xl font-bold text-brand-400">DealzyCoup</span>}
                     {collapsed && <span className="text-xl font-bold text-brand-400">CH</span>}
                 </Link>
                 <button

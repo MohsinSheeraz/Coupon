@@ -41,12 +41,37 @@ function transformStore(s: any) {
         _id: undefined,
     })
 }
+
+async function transformStoresWithOfferCounts(storeDocs: Store[]): Promise<Store[]> {
+    const { coupons } = await getCollections()
+    const offers = await coupons.find({}, { projection: { storeId: 1, type: 1 } }).toArray()
+    const countsByStore = new Map<string, { couponCount: number; dealCount: number }>()
+
+    offers.forEach((offer) => {
+        const storeId = toStr(offer.storeId)
+        const counts = countsByStore.get(storeId) ?? { couponCount: 0, dealCount: 0 }
+        if (offer.type === "deal") {
+            counts.dealCount += 1
+        } else {
+            counts.couponCount += 1
+        }
+        countsByStore.set(storeId, counts)
+    })
+
+    return storeDocs.map((store) => {
+        const counts = countsByStore.get(toStr(store._id)) ?? { couponCount: 0, dealCount: 0 }
+        return {
+            ...transformStore(store),
+            ...counts,
+        }
+    })
+}
 // ─┘
 
 // Get MongoDB collections
 async function getCollections() {
     const client = await clientPromise
-    const db = client.db("couponhub")
+    const db = client.db("DealzyCoup")
 
     return {
         stores: db.collection<Store>("stores"),
@@ -58,39 +83,26 @@ async function getCollections() {
 // Store functions
 export async function getAllStores(): Promise<Store[]> {
     const { stores } = await getCollections()
-    return (await stores.find({}).sort({ name: 1 }).toArray()).map(transformStore)
+    const allStores = await stores.find({}).sort({ name: 1 }).toArray()
+    return transformStoresWithOfferCounts(allStores)
 }
 
 export async function getStoreBySlug(slug: string): Promise<Store | null> {
     const { stores } = await getCollections()
     const store = await stores.findOne({ slug })
-    return store ? transformStore(store) : null
+    return store ? (await transformStoresWithOfferCounts([store]))[0] : null
 }
 
 export async function getStoreById(id: string): Promise<Store | null> {
     const { stores } = await getCollections()
     const store = await stores.findOne({ _id: new ObjectId(id) })
-    return store ? transformStore(store) : null
+    return store ? (await transformStoresWithOfferCounts([store]))[0] : null
 }
 
 export async function getPopularStores(limit = 6): Promise<Store[]> {
-    const { stores } = await getCollections()
-
-    // 1) fetch raw store docs and map to your Store type (with couponCount)
-    const raw = await stores.find({}).sort({ couponCount: -1 }).limit(limit).toArray()
-    const baseStores = raw.map(transformStore)
-
-    const allDeals = await getAllDeals()     // your existing helper
-    const dealCountMap: Record<string, number> = {}
-    allDeals.forEach((d) => {
-        const sid = d.store?.id
-        if (sid) dealCountMap[sid] = (dealCountMap[sid] || 0) + 1
-    })
-    // 3) merge dealCount into each Store
-    return baseStores.map((st) => ({
-        ...st,
-        dealCount: dealCountMap[st.id] || 0,
-    }))
+    return (await getAllStores())
+        .sort((a, b) => b.couponCount - a.couponCount)
+        .slice(0, limit)
 }
 
 export async function createStore(store: Omit<Store, "_id" | "createdAt" | "updatedAt">): Promise<Store> {
@@ -331,6 +343,7 @@ export async function createDeal(deal: {
     storeId: string
     affiliateLink: string
     expiryDate: string
+    logo?: string
 }): Promise<Deal> {
     const { coupons, stores } = await getCollections()
 
@@ -409,7 +422,7 @@ export async function searchCouponsAndStores(query: string): Promise<{
 
     return {
         coupons: populatedCoupons.map(transformCoupon),
-        stores: matchedStores.map(transformStore),
+        stores: await transformStoresWithOfferCounts(matchedStores),
     }
 }
 
@@ -422,16 +435,16 @@ export async function getSettings(): Promise<SiteSettings> {
     if (!siteSettings) {
         // Create default settings if none exist
         const defaultSettings: SiteSettings = {
-            siteName: "CouponHub",
+            siteName: "DealzyCoup",
             siteDescription: "Find the best deals and coupons",
-            contactEmail: "contact@couponhub.com",
+            contactEmail: "contact@DealzyCoup.com",
             socialLinks: {
-                facebook: "https://facebook.com/couponhub",
-                twitter: "https://twitter.com/couponhub",
-                instagram: "https://instagram.com/couponhub",
+                facebook: "https://facebook.com/DealzyCoup",
+                twitter: "https://twitter.com/DealzyCoup",
+                instagram: "https://instagram.com/DealzyCoup",
             },
             metaTags: {
-                title: "CouponHub - Find the Best Deals",
+                title: "DealzyCoup - Find the Best Deals",
                 description: "Discover the best coupons and deals from your favorite stores",
                 keywords: "coupons, deals, promo codes, discounts, savings",
             },

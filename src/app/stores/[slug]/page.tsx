@@ -37,7 +37,7 @@ export default async function StoreDetailPage({
                     <div>
                         <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">{store.name}</h1>
                         <p className="mt-1 text-white/70">
-                            {store.couponCount} Coupons&nbsp;&amp;&nbsp;Deals
+                            {store.couponCount + store.dealCount} Coupons&nbsp;&amp;&nbsp;Deals
                         </p>
                     </div>
                 </div>

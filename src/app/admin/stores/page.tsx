@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getAllStores } from "@/lib/data"
+import { getAllCoupons, getAllStores } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Edit, ExternalLink } from "lucide-react"
@@ -9,7 +9,19 @@ import { DeleteItemButton } from "@/components/DeleteButton"
 
 export const revalidate = 30   // seconds
 export default async function AdminStoresPage() {
-    const stores = await getAllStores()
+    const [stores, coupons] = await Promise.all([getAllStores(), getAllCoupons()])
+    const countsByStore = new Map<string, { couponCount: number; dealCount: number }>()
+
+    coupons.forEach((coupon) => {
+        const storeId = coupon.storeId.toString()
+        const counts = countsByStore.get(storeId) ?? { couponCount: 0, dealCount: 0 }
+        if (coupon.type === "deal") {
+            counts.dealCount += 1
+        } else {
+            counts.couponCount += 1
+        }
+        countsByStore.set(storeId, counts)
+    })
 
     return (
         <div className="animate-fadeIn">
@@ -30,6 +42,7 @@ export default async function AdminStoresPage() {
                             <TableHead>Store URL</TableHead>
                             <TableHead>Categories</TableHead>
                             <TableHead>Coupons</TableHead>
+                            <TableHead>Deals</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -70,7 +83,12 @@ export default async function AdminStoresPage() {
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-gray-800 ">{store.couponCount}</TableCell>
+                                <TableCell className="text-gray-800 ">
+                                    {countsByStore.get(store.id ?? "")?.couponCount ?? 0}
+                                </TableCell>
+                                <TableCell className="text-gray-800 ">
+                                    {countsByStore.get(store.id ?? "")?.dealCount ?? 0}
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
                                         <Link href={`/admin/stores/edit/${store.id}`}>

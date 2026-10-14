@@ -106,7 +106,7 @@ export default function SettingsPage() {
                                         name="siteName"
                                         value={settings.siteName}
                                         onChange={handleChange}
-                                        placeholder="e.g. CouponHub"
+                                        placeholder="e.g. DealzyCoup"
                                         required
                                     />
                                 </div>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                                         value={settings.contactEmail}
                                         onChange={handleChange}
                                         type="email"
-                                        placeholder="e.g. contact@couponhub.com"
+                                        placeholder="e.g. contact@DealzyCoup.com"
                                         required
                                     />
                                 </div>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                                         name="socialLinks.facebook"
                                         value={settings.socialLinks.facebook || ""}
                                         onChange={handleChange}
-                                        placeholder="e.g. https://facebook.com/couponhub"
+                                        placeholder="e.g. https://facebook.com/DealzyCoup"
                                     />
                                 </div>
 
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                                         name="socialLinks.twitter"
                                         value={settings.socialLinks.twitter || ""}
                                         onChange={handleChange}
-                                        placeholder="e.g. https://twitter.com/couponhub"
+                                        placeholder="e.g. https://twitter.com/DealzyCoup"
                                     />
                                 </div>
 
@@ -174,7 +174,7 @@ export default function SettingsPage() {
                                         name="socialLinks.instagram"
                                         value={settings.socialLinks.instagram || ""}
                                         onChange={handleChange}
-                                        placeholder="e.g. https://instagram.com/couponhub"
+                                        placeholder="e.g. https://instagram.com/DealzyCoup"
                                     />
                                 </div>
 
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                                         name="socialLinks.pinterest"
                                         value={settings.socialLinks.pinterest || ""}
                                         onChange={handleChange}
-                                        placeholder="e.g. https://pinterest.com/couponhub"
+                                        placeholder="e.g. https://pinterest.com/DealzyCoup"
                                     />
                                 </div>
                             </CardContent>
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                                         name="metaTags.title"
                                         value={settings.metaTags.title}
                                         onChange={handleChange}
-                                        placeholder="e.g. CouponHub - Find the Best Deals"
+                                        placeholder="e.g. DealzyCoup - Find the Best Deals"
                                         required
                                     />
                                 </div>

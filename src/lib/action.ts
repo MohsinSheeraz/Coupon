@@ -67,6 +67,8 @@ export async function createCoupon(
         })
         revalidatePath("/admin/coupons")
         revalidatePath("/coupons")
+        revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error creating coupon:", error)
@@ -81,6 +83,8 @@ export async function updateCoupon(id: string, coupon: Partial<Coupon>) {
         revalidatePath("/admin/deals") // Add this line to revalidate deals too
         revalidatePath("/coupons")
         revalidatePath("/deals") // Add this line to revalidate deals too
+        revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error updating coupon:", error)
@@ -93,6 +97,8 @@ export async function deleteCoupon(id: string) {
         await dbDeleteCoupon(id)
         revalidatePath("/admin/coupons")
         revalidatePath("/coupons")
+        revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error deleting coupon:", error)
@@ -128,6 +134,8 @@ export async function createDeal(deal: {
         })
         revalidatePath("/admin/deals")
         revalidatePath("/deals")
+        revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error creating deal:", error)
@@ -140,6 +148,8 @@ export async function deleteDeal(id: string) {
         await dbDeleteCoupon(id) // Deals are stored in the coupons collection
         revalidatePath("/admin/deals")
         revalidatePath("/deals")
+        revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error deleting deal:", error)

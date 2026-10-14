@@ -45,7 +45,7 @@ export default function Footer() {
                                 <span className="grid size-9 place-items-center rounded-xl bg-grape text-white transition-transform duration-300 group-hover:-rotate-12">
                                     <Ticket className="size-5" />
                                 </span>
-                                <span className="font-display text-xl font-semibold text-white">CouponHub</span>
+                                <span className="font-display text-xl font-semibold text-white">DealzyCoup</span>
                             </Link>
                             <p className="mt-4 max-w-xs leading-relaxed">
                                 Your destination for the best deals and discounts online.
@@ -90,7 +90,7 @@ export default function Footer() {
                         </div>
                     </div>
                     <div className="mt-12 border-t border-white/10 pt-6 text-sm">
-                        <p>© {new Date().getFullYear()} CouponHub. All rights reserved.</p>
+                        <p>© {new Date().getFullYear()} DealzyCoup. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

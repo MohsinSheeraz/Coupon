@@ -19,7 +19,7 @@ const body = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "CouponHub - Find the Best Deals",
+  title: "DealzyCoup - Find the Best Deals",
   description: "Discover the best coupons and deals from your favorite stores",
 }
 

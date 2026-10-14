@@ -12,6 +12,7 @@ import { CouponModal } from "./coupon-modal"
 export function CouponCard({ coupon }: { coupon: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const isCode = coupon.type === "code"
+    const image = coupon.type === "deal" ? coupon.logo || coupon.store?.logo : coupon.store?.logo
 
     return (
         <>
@@ -21,7 +22,7 @@ export function CouponCard({ coupon }: { coupon: any }) {
                     <header className="flex h-[92px] shrink-0 items-center gap-3 px-5">
                         <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-paper ring-1 ring-ink/5">
                             <img
-                                src={coupon.store?.logo || "/placeholder.svg"}
+                                src={image || "/placeholder.svg"}
                                 alt={coupon.store?.name}
                                 className="size-8 object-contain"
                             />

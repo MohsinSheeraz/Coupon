@@ -24,6 +24,7 @@ const RING = 100.53 // circumference of the countdown ring (r = 16)
 export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
     const [copied, setCopied] = useState(false)
     const [countdown, setCountdown] = useState(5)
+    const image = coupon.type === "deal" ? coupon.logo || coupon.store?.logo : coupon.store?.logo
 
     useEffect(() => {
         let timer: NodeJS.Timeout
@@ -113,13 +114,13 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                     <div
                         aria-hidden
                         className="absolute inset-0 scale-150 bg-cover bg-center opacity-40 blur-3xl"
-                        style={{ backgroundImage: `url("${coupon.store?.logo || "/placeholder.svg"}")` }}
+                        style={{ backgroundImage: `url("${image || "/placeholder.svg"}")` }}
                     />
                     <div className="relative">
                         <div className="flex items-center gap-3">
                             <div className="grid size-14 place-items-center rounded-2xl bg-white shadow-lg">
                                 <img
-                                    src={coupon.store?.logo || "/placeholder.svg"}
+                                    src={image || "/placeholder.svg"}
                                     alt={coupon.store?.name}
                                     className="size-9 object-contain"
                                 />
