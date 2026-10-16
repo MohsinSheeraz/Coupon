@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAllCoupons } from "@/lib/data"
-// Import your other database methods here as needed, for example:
-// import { getCouponById, updateCoupon, deleteCoupon, incrementCoupon } from "@/lib/data"
+import { getAllCoupons, getCouponById } from "@/lib/data"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id?: string[] }> }) {
     try {
@@ -25,10 +23,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id?:
             return NextResponse.json({ message: "Increment endpoint hit safely" })
         }
 
-        // Case C: /api/coupons/[id] (e.g., /api/coupons/123)
+        // Case C: /api/coupons/[id]
         const couponId = routeArray[0]
-        // ➡️ PASTE YOUR ORIGINAL GET BY ID LOGIC HERE
-        return NextResponse.json({ message: `Fetching coupon with id: ${couponId}` })
+        const coupon = await getCouponById(couponId)
+        if (!coupon) {
+            return NextResponse.json({ error: "Coupon not found" }, { status: 404 })
+        }
+        return NextResponse.json(coupon, {
+            headers: { "Cache-Control": "private, no-store" },
+        })
 
     } catch (error) {
         console.error("Error fetching coupons:", error)

@@ -186,6 +186,32 @@ export async function getAllCoupons(): Promise<Coupon[]> {
     return populatedCoupons.map(transformCoupon)
 }
 
+async function getOfferById(id: string, type?: "deal"): Promise<Coupon | null> {
+    if (!ObjectId.isValid(id)) return null
+
+    const { coupons, stores } = await getCollections()
+    const filter = type ? { _id: new ObjectId(id), type } : { _id: new ObjectId(id) }
+    const coupon = await coupons.findOne(filter)
+    if (!coupon) return null
+
+    const store = await stores.findOne({ _id: new ObjectId(coupon.storeId.toString()) })
+    return transformCoupon({
+        ...coupon,
+        store: store
+            ? {
+                id: store._id.toString(),
+                name: store.name,
+                slug: store.slug,
+                logo: store.logo,
+            }
+            : undefined,
+    })
+}
+
+export async function getCouponById(id: string): Promise<Coupon | null> {
+    return getOfferById(id)
+}
+
 export async function getCouponsByStore(storeId: string): Promise<Coupon[]> {
     const { coupons, stores } = await getCollections()
     const storeCoupons = await coupons.find({ storeId: new ObjectId(storeId) }).toArray()
@@ -336,6 +362,10 @@ export async function getAllDeals(): Promise<Deal[]> {
     )
 
     return populatedDeals.map(transformCoupon)
+}
+
+export async function getDealById(id: string): Promise<Deal | null> {
+    return getOfferById(id, "deal")
 }
 
 export async function createDeal(deal: {

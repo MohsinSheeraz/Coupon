@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-// Import whatever data methods you are using in your deals endpoints, for example:
-// import { getAllDeals, getDealById, createDeal, updateDeal, deleteDeal } from "@/lib/data"
+import { getAllDeals, getDealById } from "@/lib/data"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id?: string[] }> }) {
     try {
@@ -9,15 +8,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id?:
 
         // Case A: /api/deals (Fetch all deals)
         if (routeArray.length === 0) {
-            // ➡️ PASTE YOUR ORIGINAL /api/deals/route.ts GET LOGIC HERE
-            // Example: const deals = await getAllDeals(); return NextResponse.json(deals);
-            return NextResponse.json({ message: "Fetching all deals successfully" })
+            const deals = await getAllDeals()
+            return NextResponse.json(deals)
         }
 
         // Case B: /api/deals/[id] (Fetch a specific deal by its ID)
         const dealId = routeArray[0]
-        // ➡️ PASTE YOUR ORIGINAL /api/deals/[id]/route.ts GET LOGIC HERE
-        return NextResponse.json({ message: `Fetching deal with id: ${dealId}` })
+        const deal = await getDealById(dealId)
+        if (!deal) {
+            return NextResponse.json({ error: "Deal not found" }, { status: 404 })
+        }
+        return NextResponse.json(deal, {
+            headers: { "Cache-Control": "private, no-store" },
+        })
 
     } catch (error) {
         console.error("Error managing deals GET requests:", error)
