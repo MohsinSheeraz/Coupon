@@ -4,92 +4,127 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { BadgeCheck, Clock, ExternalLink, Percent, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { BadgeCheck, Tag, Percent } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getExpiry, getOfferImage, maskCode } from "@/lib/offer"
 import { CouponModal } from "./coupon-modal"
+
+const EXPIRY_TONES = {
+    ok: "bg-white/90 text-ink/70 ring-1 ring-ink/10",
+    soon: "bg-amber-100 text-amber-800",
+    expired: "bg-red-100 text-red-700",
+} as const
 
 export function CouponCard({ coupon }: { coupon: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const isCode = coupon.type === "code"
-    const image = coupon.type === "deal" ? coupon.logo || coupon.store?.logo : coupon.store?.logo
+    const image = getOfferImage(coupon)
+    const expiry = getExpiry(coupon.expiryDate)
+    const open = () => setIsModalOpen(true)
 
     return (
         <>
             <div className="ticket-shell h-full">
-                <article className="ticket relative flex h-full flex-col">
-                    {/* Stub: store info */}
-                    <header className="flex h-[92px] shrink-0 items-center gap-3 px-5">
-                        <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-paper ring-1 ring-ink/5">
-                            <img
-                                src={image || "/placeholder.svg"}
-                                alt={coupon.store?.name}
-                                className="size-8 object-contain"
-                            />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <h3 className="truncate font-display text-base font-semibold text-ink">
-                                {coupon.store?.name}
-                            </h3>
-                            <p className="mt-0.5 flex items-center gap-1 text-xs text-ink/55">
-                                <BadgeCheck className="size-3.5 shrink-0 text-mint" />
-                                <span className="truncate">Verified {coupon.verifiedTime}</span>
-                            </p>
-                        </div>
+                {/* Whole card opens the modal for mouse users; keyboard users get the real button below */}
+                <article
+                    onClick={open}
+                    className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-ink/10 bg-white transition-colors duration-300 hover:border-grape/40"
+                >
+                    {/* Product image */}
+                    <div className="relative aspect-[4/3] max-h-72 w-full overflow-hidden bg-paper">
+                        <div
+                            aria-hidden
+                            className="absolute inset-0 scale-150 bg-cover bg-center opacity-30 blur-2xl"
+                            style={{ backgroundImage: `url("${image}")` }}
+                        />
+                        <img
+                            src={image}
+                            alt={coupon.title}
+                            loading="lazy"
+                            className="relative size-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+                        />
+
                         <span
                             className={cn(
-                                "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
-                                isCode ? "bg-grape/10 text-grape" : "bg-citrus text-ink",
+                                "absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+                                isCode ? "bg-grape text-white" : "bg-citrus text-ink",
                             )}
                         >
                             {isCode ? <Tag className="size-3" /> : <Percent className="size-3" />}
                             {isCode ? "Code" : "Deal"}
                         </span>
-                    </header>
 
-                    {/* Tear line */}
-                    <div aria-hidden className="ticket-perf" />
+                        {expiry && (
+                            <span
+                                className={cn(
+                                    "absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+                                    EXPIRY_TONES[expiry.tone],
+                                )}
+                            >
+                                <Clock className="size-3" />
+                                {expiry.label}
+                            </span>
+                        )}
 
-                    {/* Body */}
-                    <div className="flex flex-1 flex-col px-5 pb-5 pt-6">
-                        <p className="font-display text-lg font-semibold leading-snug text-ink">{coupon.title}</p>
+                        {/* Store chip */}
+                        <span className="absolute bottom-3 left-3 inline-flex max-w-[70%] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-xs font-medium text-ink ring-1 ring-ink/10">
+                            <span className="grid size-5 shrink-0 place-items-center overflow-hidden rounded-full bg-paper">
+                                <img
+                                    src={coupon.store?.logo || "/placeholder.svg"}
+                                    alt=""
+                                    className="size-4 object-contain"
+                                />
+                            </span>
+                            <span className="truncate">{coupon.store?.name}</span>
+                        </span>
+                    </div>
 
-                        <p className="mb-5 mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-ink/60">
-                            {coupon.description}
+                    {/* Details */}
+                    <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3.5">
+                        <h3 className="line-clamp-2 font-display text-base font-semibold leading-snug text-ink">
+                            {coupon.title}
+                        </h3>
+
+                        {coupon.description && (
+                            <p className="line-clamp-2 text-sm leading-relaxed text-ink/60">{coupon.description}</p>
+                        )}
+
+                        <p className="flex items-center gap-1 text-xs text-ink/55">
+                            <BadgeCheck className="size-3.5 shrink-0 text-mint" />
+                            <span className="truncate">
+                                Verified {coupon.verifiedTime} · Used {coupon.usedCount} times
+                            </span>
                         </p>
 
-                        <div className="mt-auto flex items-center justify-between gap-3">
-                            <span className="text-xs text-ink/50">Used {coupon.usedCount} times</span>
-                            <div className="flex items-center gap-2">
-                                {coupon.affiliateLink && (
-                                    <Button
-                                        asChild
-                                        variant="outline"
-                                        size="sm"
-                                        className="rounded-full border-ink/15 bg-white px-4 text-ink hover:border-grape hover:bg-white hover:text-grape"
-                                    >
-                                        <Link
-                                            href={coupon.affiliateLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Visit
-                                        </Link>
-                                    </Button>
-                                )}
-                                <Button
-                                    size="sm"
-                                    className={cn(
-                                        "cursor-pointer rounded-full px-4 font-semibold",
-                                        isCode
-                                            ? "bg-grape text-white shadow-[0_8px_18px_-8px_rgb(91_61_245/0.8)] hover:bg-grape-deep"
-                                            : "bg-citrus text-ink shadow-[0_8px_18px_-8px_rgb(255_210_63/0.9)] hover:bg-citrus/80",
-                                    )}
-                                    onClick={() => setIsModalOpen(true)}
+                        <div className="mt-auto flex items-center gap-2 pt-2">
+                            {coupon.affiliateLink && (
+                                <Link
+                                    href={coupon.affiliateLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={`Visit ${coupon.store?.name ?? "store"}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="grid size-10 shrink-0 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:border-grape hover:text-grape"
                                 >
-                                    {isCode ? "Get Code" : "Get Deal"}
+                                    <ExternalLink className="size-4" />
+                                </Link>
+                            )}
+
+                            {isCode ? (
+                                <Button
+                                    className="h-10 flex-1 cursor-pointer justify-between rounded-full bg-grape pl-4 pr-4 font-semibold text-white hover:bg-grape-deep"
+                                >
+                                    <span className="font-mono text-sm tracking-widest text-white/80">
+                                        {maskCode(coupon.code)}
+                                    </span>
+                                    <span>Get code</span>
                                 </Button>
-                            </div>
+                            ) : (
+                                <Button className="h-10 flex-1 cursor-pointer rounded-full bg-citrus font-semibold text-ink hover:bg-citrus/80">
+                                    Get deal
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </article>

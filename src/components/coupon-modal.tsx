@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Check, Copy, ExternalLink, X } from "lucide-react"
 import { toast } from "sonner"
+import { getExpiry, getOfferImage } from "@/lib/offer"
 
 interface CouponModalProps {
     isOpen: boolean
@@ -24,8 +25,10 @@ const RING = 100.53 // circumference of the countdown ring (r = 16)
 export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
     const [copied, setCopied] = useState(false)
     const [countdown, setCountdown] = useState(5)
-    const image = coupon.type === "deal" ? coupon.logo || coupon.store?.logo : coupon.store?.logo
+    const image = getOfferImage(coupon)
+    const expiry = getExpiry(coupon?.expiryDate)
 
+    // ── logic below is unchanged ─────────────────────────────────────────
     useEffect(() => {
         let timer: NodeJS.Timeout
 
@@ -61,13 +64,13 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
         }
     }
 
-
     const handleContinue = () => {
         window.open(coupon.affiliateLink || coupon.store?.website, "_blank")
         onClose()
     }
 
     if (!coupon) return null
+    // ── end of unchanged logic ───────────────────────────────────────────
 
     const countdownNote = (
         <div className="mt-5 flex items-center justify-center gap-3 text-sm text-ink/55">
@@ -103,42 +106,45 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-3 top-3 z-10 cursor-pointer rounded-full text-white/80 hover:bg-white/15 hover:text-white"
+                        aria-label="Close"
+                        className="absolute right-3 top-3 z-10 cursor-pointer rounded-full text-ink/60 hover:bg-ink/5 hover:text-ink"
                     >
                         <X />
                     </Button>
                 </DialogClose>
 
-                {/* Header band — the store's own logo colours tint the backdrop */}
-                <div className="relative overflow-hidden bg-ink px-6 pb-7 pt-6 text-white">
+                {/* Product header */}
+                <div className="relative overflow-hidden bg-paper px-6 pb-6 pt-8 text-center">
                     <div
                         aria-hidden
-                        className="absolute inset-0 scale-150 bg-cover bg-center opacity-40 blur-3xl"
-                        style={{ backgroundImage: `url("${image || "/placeholder.svg"}")` }}
+                        className="absolute inset-0 scale-150 bg-cover bg-center opacity-30 blur-3xl"
+                        style={{ backgroundImage: `url("${image}")` }}
                     />
-                    <div className="relative">
-                        <div className="flex items-center gap-3">
-                            <div className="grid size-14 place-items-center rounded-2xl bg-white shadow-lg">
-                                <img
-                                    src={image || "/placeholder.svg"}
-                                    alt={coupon.store?.name}
-                                    className="size-9 object-contain"
-                                />
-                            </div>
-                            <span className="font-display text-lg font-medium">{coupon.store?.name}</span>
+                    <div className="relative flex flex-col items-center">
+                        <div className="grid size-52 place-items-center overflow-hidden rounded-2xl bg-white ring-1 ring-ink/10">
+                            <img src={image} alt={coupon.title} className="size-full object-contain p-2" />
                         </div>
 
-                        <DialogHeader className="mt-5 text-left">
-                            {/* Always show the deal title here */}
-                            <DialogTitle className="font-display text-2xl font-semibold leading-tight text-white">
+                        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-xs font-medium ring-1 ring-ink/10">
+                            <span className="grid size-5 place-items-center overflow-hidden rounded-full bg-paper">
+                                <img
+                                    src={coupon.store?.logo || "/placeholder.svg"}
+                                    alt=""
+                                    className="size-4 object-contain"
+                                />
+                            </span>
+                            {coupon.store?.name}
+                        </span>
+
+                        <DialogHeader className="mt-3 items-center text-center sm:text-center">
+                            <DialogTitle className="font-display text-xl font-semibold leading-snug text-ink">
                                 {coupon.title}
                             </DialogTitle>
-                            {/* Only show the "copy" description for code coupons */}
-                            {coupon.type === "code" && (
-                                <DialogDescription className="text-white/70">
-                                    Copy this code and use it at checkout
-                                </DialogDescription>
-                            )}
+                            <DialogDescription className="text-ink/60">
+                                {[expiry?.label, coupon.verifiedTime && `Verified ${coupon.verifiedTime}`]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                            </DialogDescription>
                         </DialogHeader>
                     </div>
                 </div>
@@ -180,9 +186,11 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                                 {copied ? "Copied!" : "Copy Code"}
                             </Button>
 
-                            <p className="mt-5 px-2 text-center text-sm leading-relaxed text-ink/60">
-                                {coupon.description}
-                            </p>
+                            {coupon.description && (
+                                <p className="mt-5 px-2 text-center text-sm leading-relaxed text-ink/60">
+                                    {coupon.description}
+                                </p>
+                            )}
 
                             {countdownNote}
                         </>
@@ -196,6 +204,10 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                                 Continue to {coupon.store?.name}
                                 <ExternalLink className="ml-1 h-5 w-5" />
                             </Button>
+
+                            <p className="mt-4 text-center text-sm text-ink/55">
+                                {coupon.usedCount} {coupon.usedCount === 1 ? "person has" : "people have"} used this deal
+                            </p>
 
                             {countdownNote}
                         </>
