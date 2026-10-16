@@ -57,7 +57,7 @@ export default async function SearchPage({
             {coupons.length > 0 && (
                 <div>
                     <h2 className="font-display text-2xl font-semibold tracking-tight text-ink mb-6">Coupons</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
                         {coupons.map((coupon) => <CouponCard key={coupon.id} coupon={coupon} />)}
                     </div>
                 </div>

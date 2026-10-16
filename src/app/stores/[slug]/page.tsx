@@ -56,7 +56,7 @@ export default async function StoreDetailPage({
 
                 <TabsContent value="coupons">
                     {coupons.length ? (
-                        <div className="stagger grid grid-cols-1 gap-5 pb-6 sm:grid-cols-2">
+                        <div className="stagger grid grid-cols-2 gap-3 pb-6 sm:gap-5">
                             {coupons.map(c => (
                                 <CouponCard key={c.id} coupon={c} />
                             ))}
@@ -68,7 +68,7 @@ export default async function StoreDetailPage({
 
                 <TabsContent value="deals">
                     {deals.length ? (
-                        <div className="stagger grid grid-cols-1 gap-5 pb-6 sm:grid-cols-2">
+                        <div className="stagger grid grid-cols-2 gap-3 pb-6 sm:gap-5">
                             {deals.map(d => (
                                 <CouponCard key={d.id} coupon={d} />
                             ))}

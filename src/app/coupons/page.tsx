@@ -37,7 +37,7 @@ export default async function CouponsPage({
     const nextPage = Math.min(currentPage + 1, totalPages)
 
     // decide grid columns
-    let gridColsClass = "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+    let gridColsClass = "grid-cols-2 md:grid-cols-2 lg:grid-cols-3"
     if (view === "one") gridColsClass = "grid-cols-1"
     else if (view === "two") gridColsClass = "grid-cols-2"
 
@@ -122,7 +122,7 @@ export default async function CouponsPage({
 
             {/* Coupon Grid */}
             {paged.length > 0 ? (
-                <div className={`grid ${gridColsClass} gap-6 stagger`}>
+                <div className={`grid ${gridColsClass} gap-3 md:gap-6 stagger`}>
                     {paged.map((coupon) => (
                         <CouponCard
                             key={coupon._id?.toString()}

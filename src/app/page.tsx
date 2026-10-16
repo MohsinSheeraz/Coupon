@@ -57,7 +57,7 @@ export default async function Home() {
       <section className="home-section trending-section">
         <div className="container mx-auto px-4">
           <SectionHeader kicker="RIGHT NOW" title="The offers worth a look." href="/coupons" link="All coupons" />
-          <div className="stagger grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="stagger grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
             {trendingCoupons.map((coupon) => (
               <CouponCard key={coupon.id} coupon={coupon} />
             ))}
