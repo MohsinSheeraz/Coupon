@@ -18,7 +18,7 @@ const links = [
     { href: "/coupons", label: "Coupons" },
     { href: "/deals", label: "Deals" },
     { href: "/stores", label: "Stores" },
-]
+] as const
 
 export default function Navbar() {
     const [searchQuery, setSearchQuery] = useState("")

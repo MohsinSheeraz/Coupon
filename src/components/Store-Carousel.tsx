@@ -8,7 +8,7 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel";
 import { getPopularStores } from "@/lib/data";
-import { Tag, BadgePercent } from "lucide-react";
+import { BadgePercent, MoveHorizontal, Tag } from "lucide-react";
 
 export default async function CarouselSize() {
     const popularStores = await getPopularStores();
@@ -25,7 +25,7 @@ export default async function CarouselSize() {
                 {popularStores.map((store) => (
                     <CarouselItem
                         key={store.id}
-                        className="w-full md:basis-1/2 lg:basis-1/3"
+                        className="w-full basis-[88%] sm:basis-1/2 lg:basis-1/3"
                     >
                         <div className="p-3">
                             <Link href={`/stores/${store.slug}`} className="group block h-full">
@@ -74,8 +74,24 @@ export default async function CarouselSize() {
 
                 ))}
             </CarouselContent>
-            <CarouselPrevious className="cursor-pointer border-0 bg-white text-ink shadow-md hover:bg-grape hover:text-white" />
-            <CarouselNext className="cursor-pointer border-0 bg-white text-ink shadow-md hover:bg-grape hover:text-white" />
+            <div className="mt-2 flex items-center justify-between rounded-2xl border border-ink/10 bg-white/80 px-3 py-2 md:hidden">
+                <span className="inline-flex items-center gap-2 text-xs font-medium text-ink/65">
+                    <MoveHorizontal className="size-4 text-grape" />
+                    Swipe or tap to explore
+                </span>
+                <div className="flex items-center gap-2">
+                    <CarouselPrevious
+                        aria-label="Previous stores"
+                        className="relative left-auto top-auto bottom-auto right-auto size-9 translate-y-0 cursor-pointer border-0 bg-paper text-ink shadow-sm hover:bg-grape hover:text-white"
+                    />
+                    <CarouselNext
+                        aria-label="Next stores"
+                        className="relative left-auto top-auto bottom-auto right-auto size-9 translate-y-0 cursor-pointer border-0 bg-grape text-white shadow-sm hover:bg-grape-deep"
+                    />
+                </div>
+            </div>
+            <CarouselPrevious className="hidden cursor-pointer border-0 bg-white text-ink shadow-md hover:bg-grape hover:text-white md:flex" />
+            <CarouselNext className="hidden cursor-pointer border-0 bg-white text-ink shadow-md hover:bg-grape hover:text-white md:flex" />
         </Carousel>
     );
 }

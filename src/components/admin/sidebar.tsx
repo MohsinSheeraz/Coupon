@@ -39,7 +39,7 @@ export function Sidebar() {
             href: "/admin/settings",
             icon: <Settings className="h-5 w-5" />,
         },
-    ]
+    ] as const
 
     return (
         <div

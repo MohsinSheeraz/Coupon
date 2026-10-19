@@ -10,7 +10,7 @@ const slides = [
   { eyebrow: "THE GOOD STUFF, FOR LESS", title: "A better way to find your next great deal.", description: "Fresh finds, verified codes, and the stores you love. Your next little win starts here.", cta: "Explore coupons", href: "/coupons", image: HERO_IMAGES[0] },
   { eyebrow: "MORE STYLE. LESS SPEND.", title: "The things you love. At prices you’ll love more.", description: "Make room for the good stuff with offers worth opening.", cta: "Shop the deals", href: "/deals", image: HERO_IMAGES[1] },
   { eyebrow: "YOUR FAVORITES, ALL HERE", title: "Good stores. Great finds. Better prices.", description: "Browse the brands on your list and discover a few new favorites along the way.", cta: "Discover stores", href: "/stores", image: HERO_IMAGES[2] },
-]
+] as const
 
 export default function HeroCarousel() {
   const [current, setCurrent] = useState(0)

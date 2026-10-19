@@ -20,30 +20,13 @@ interface CouponModalProps {
     coupon: any
 }
 
-const RING = 100.53 // circumference of the countdown ring (r = 16)
-
 export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
     const [copied, setCopied] = useState(false)
-    const [countdown, setCountdown] = useState(5)
     const image = getOfferImage(coupon)
     const expiry = getExpiry(coupon?.expiryDate)
 
-    // ── logic below is unchanged ─────────────────────────────────────────
-    useEffect(() => {
-        let timer: NodeJS.Timeout
-
-        if (isOpen && countdown > 0) {
-            timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-        } else if (isOpen && countdown === 0) {
-            timer = setTimeout(onClose, 1000)
-        }
-
-        return () => clearTimeout(timer)
-    }, [isOpen, countdown, onClose])
-
     useEffect(() => {
         if (isOpen) {
-            setCountdown(5)
             setCopied(false)
             if (coupon?._id) {
                 fetch("/api/coupons/increment", {
@@ -55,6 +38,8 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
         }
     }, [isOpen, coupon])
 
+    const affiliateLink = coupon?.affiliateLink || coupon?.store?.website
+
     const copyToClipboard = () => {
         if (coupon?.code) {
             navigator.clipboard.writeText(coupon.code)
@@ -64,44 +49,11 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
         }
     }
 
-    const handleContinue = () => {
-        window.open(coupon.affiliateLink || coupon.store?.website, "_blank")
-        onClose()
-    }
-
     if (!coupon) return null
-    // ── end of unchanged logic ───────────────────────────────────────────
-
-    const countdownNote = (
-        <div className="mt-5 flex items-center justify-center gap-3 text-sm text-ink/55">
-            <svg className="size-9 -rotate-90" viewBox="0 0 36 36" aria-hidden>
-                <circle cx="18" cy="18" r="16" fill="none" strokeWidth="3" className="stroke-ink/10" />
-                <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    className="stroke-grape"
-                    style={{
-                        strokeDasharray: RING,
-                        strokeDashoffset: RING * (1 - countdown / 5),
-                        transition: "stroke-dashoffset 1s linear",
-                    }}
-                />
-            </svg>
-            <p>
-                This window will close in{" "}
-                <span className="font-semibold text-ink">{countdown}</span>{" "}
-                seconds.
-            </p>
-        </div>
-    )
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 text-ink shadow-2xl data-[state=open]:duration-300 sm:max-w-md">
+            <DialogContent className="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto overflow-x-hidden rounded-3xl border-0 bg-white p-0 text-ink shadow-2xl data-[state=open]:duration-300 sm:max-w-md">
                 <DialogClose asChild>
                     <Button
                         variant="ghost"
@@ -114,14 +66,14 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                 </DialogClose>
 
                 {/* Product header */}
-                <div className="relative overflow-hidden bg-paper px-6 pb-6 pt-8 text-center">
+                <div className="relative overflow-hidden bg-paper px-5 pb-5 pt-8 text-center sm:px-6 sm:pb-6">
                     <div
                         aria-hidden
                         className="absolute inset-0 scale-150 bg-cover bg-center opacity-30 blur-3xl"
                         style={{ backgroundImage: `url("${image}")` }}
                     />
                     <div className="relative flex flex-col items-center">
-                        <div className="grid size-52 place-items-center overflow-hidden rounded-2xl bg-white ring-1 ring-ink/10">
+                        <div className="grid size-36 place-items-center overflow-hidden rounded-2xl bg-white ring-1 ring-ink/10 sm:size-52">
                             <img src={image} alt={coupon.title} className="size-full object-contain p-2" />
                         </div>
 
@@ -152,7 +104,7 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                 {/* Tear line */}
                 <div aria-hidden className="border-t-2 border-dashed border-ink/15" />
 
-                <div className="flex flex-col px-6 pb-6 pt-6">
+                <div className="flex flex-col px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6">
                     {coupon.type === "code" ? (
                         <>
                             {/* Code box with copy icon */}
@@ -192,25 +144,38 @@ export function CouponModal({ isOpen, onClose, coupon }: CouponModalProps) {
                                 </p>
                             )}
 
-                            {countdownNote}
                         </>
                     ) : (
-                        <>
-                            {/* Continue button */}
+                        <p className="mt-4 text-center text-sm text-ink/55">
+                            {coupon.usedCount} {coupon.usedCount === 1 ? "person has" : "people have"} used this deal
+                        </p>
+                    )}
+
+                    {affiliateLink && (
+                        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-grape/15 bg-paper/70 p-3.5">
+                            <div className="min-w-0">
+                                {/* <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-grape">
+                                    Affiliate link
+                                </p> */}
+                                <p className="mt-0.5 truncate text-sm text-ink/65">
+                                    Visit {coupon.store?.name || "the store"}
+                                </p>
+                            </div>
                             <Button
-                                className="h-12 w-full cursor-pointer rounded-full bg-citrus text-base font-semibold text-ink shadow-[0_10px_24px_-10px_rgb(255_210_63/0.9)] hover:bg-citrus/80"
-                                onClick={handleContinue}
+                                asChild
+                                className="h-10 shrink-0 cursor-pointer rounded-full bg-grape px-4 text-sm font-semibold text-white hover:bg-grape-deep"
                             >
-                                Continue to {coupon.store?.name}
-                                <ExternalLink className="ml-1 h-5 w-5" />
+                                <a
+                                    href={affiliateLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={onClose}
+                                >
+                                    Visit store
+                                    <ExternalLink className="size-4" />
+                                </a>
                             </Button>
-
-                            <p className="mt-4 text-center text-sm text-ink/55">
-                                {coupon.usedCount} {coupon.usedCount === 1 ? "person has" : "people have"} used this deal
-                            </p>
-
-                            {countdownNote}
-                        </>
+                        </div>
                     )}
                 </div>
             </DialogContent>
