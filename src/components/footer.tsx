@@ -73,7 +73,7 @@ export default function Footer() {
                                 {CATEGORY_TILES.map((c) => (
                                     <li key={c.label}>
                                         <Link
-                                            href={`/search?q=${encodeURIComponent(c.query)}`}
+                                            href={`/stores?category=${encodeURIComponent(c.query)}`}
                                             className="transition-colors hover:text-citrus"
                                         >
                                             {c.label}

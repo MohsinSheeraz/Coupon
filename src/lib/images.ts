@@ -38,6 +38,36 @@ export const CATEGORY_TILES = [
     query: "Travel",
     image: unsplash("photo-1476514525535-07fb3b4ae5f1", 800),
   },
+  {
+    label: "Beauty",
+    query: "Beauty",
+    image: unsplash("photo-1596462502278-27bfdc403348", 800),
+  },
+  {
+    label: "Sports & Outdoors",
+    query: "Sports & Outdoors",
+    image: unsplash("photo-1551632811-561732d1e306", 800),
+  },
+  {
+    label: "Grocery",
+    query: "Grocery",
+    image: unsplash("photo-1542838132-92c53300491e", 800),
+  },
+  {
+    label: "Toys & Games",
+    query: "Toys & Games",
+    image: unsplash("photo-1558060370-d644479cb6f7", 800),
+  },
+  {
+    label: "Automotive",
+    query: "Automotive",
+    image: unsplash("photo-1492144534655-ae79c964c9d7", 800),
+  },
+  {
+    label: "Pets",
+    query: "Pets",
+    image: unsplash("photo-1450778869180-41d0601e046e", 800),
+  },
 ]
 
 export const NEWSLETTER_IMAGE = unsplash("photo-1556742049-0cfed4f6a45d", 1920)

@@ -51,10 +51,10 @@ export default async function DealsPage({
             </div>
 
             {/* Controls Bar */}
-            <div className="flex items-center justify-between mb-5">
-                {/* Pagination (left) */}
-                {view !== "all" && totalPages > 1 && (
-                    <div className="flex items-center space-x-2">
+            <div className="listing-controls">
+                <div className="listing-pagination-row">
+                    {view !== "all" && totalPages > 1 && (
+                        <div className="flex items-center space-x-2">
                         <Link
                             href={`?view=${view}&page=${prevPage}`}
                             className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage <= 1
@@ -87,14 +87,23 @@ export default async function DealsPage({
                         >
                             Next
                         </Link>
-                    </div>
-                )}
+                        </div>
+                    )}
+                    <Link
+                        href="?view=all&page=1"
+                        className={`hidden whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors md:inline-flex ${view === "all"
+                            ? "bg-ink text-white border-ink"
+                            : "bg-white text-gray-700"
+                            }`}
+                    >
+                        Show all
+                    </Link>
+                </div>
 
-                {/* View Controls (right) */}
-                <div className="flex gap-2">
+                <div className="listing-view-controls flex gap-2 overflow-x-auto md:hidden">
                     <Link
                         href={`?view=one&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "one"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "one"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}
@@ -103,7 +112,7 @@ export default async function DealsPage({
                     </Link>
                     <Link
                         href={`?view=two&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "two"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "two"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}
@@ -112,7 +121,7 @@ export default async function DealsPage({
                     </Link>
                     <Link
                         href={`?view=all&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "all"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "all"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}

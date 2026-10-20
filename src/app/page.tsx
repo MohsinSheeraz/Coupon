@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
-  Search,
   Tag,
   TrendingUp,
 } from "lucide-react";
@@ -12,7 +11,7 @@ import { getTrendingCoupons } from "@/lib/data";
 import { CouponCard } from "@/components/coupon-card";
 import HeroCarousel from "@/components/hero-carousel";
 import CarouselSize from "@/components/Store-Carousel";
-import { CATEGORY_TILES, withFallback } from "@/lib/images";
+import CategorySlider from "@/components/category-slider";
 
 function SectionHeader({
   kicker,
@@ -70,29 +69,7 @@ export default async function Home() {
             href="/stores"
             link="All stores"
           />
-          <div className="category-grid">
-            {CATEGORY_TILES.map((tile, index) => (
-              <Link
-                key={tile.label}
-                href={`/search?q=${encodeURIComponent(tile.query)}`}
-                className="category-tile"
-              >
-                <div
-                  aria-hidden
-                  className="category-image"
-                  style={{ backgroundImage: withFallback(tile.image) }}
-                />
-                <div className="category-shade" />
-                <span className="category-number">0{index + 1} / 04</span>
-                <span className="category-label">
-                  <span>{tile.label}</span>
-                  <span className="category-icon">
-                    <ArrowUpRight size={20} />
-                  </span>
-                </span>
-              </Link>
-            ))}
-          </div>
+          <CategorySlider />
         </div>
       </section>
 
@@ -135,9 +112,9 @@ export default async function Home() {
               <em>There’s a deal for that.</em>
             </h2>
           </div>
-          <Link href="/stores" className="button-dark">
+          {/* <Link href="/stores" className="button-dark">
             Find a store <Search size={18} />
-          </Link>
+          </Link> */}
           <ArrowRight
             className="discover-decoration"
             aria-hidden

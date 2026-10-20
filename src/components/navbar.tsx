@@ -121,26 +121,28 @@ export default function Navbar() {
                     </div>
                 </div>
 
+                <form onSubmit={handleSearch} className="flex items-center pb-3 md:hidden">
+                    <div className="relative w-full">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                            <Search className="h-4 w-4 text-ink/40" />
+                        </div>
+                        <Input
+                            type="search"
+                            placeholder="Search for stores or coupons..."
+                            aria-label="Search for stores or coupons"
+                            className="h-10 w-full rounded-full border-ink/10 bg-white pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:bg-grape text-white">
+                        Search
+                    </Button>
+                </form>
+
                 {/* Mobile menu */}
                 {mobileMenuOpen && (
                     <div className="anim-menu py-4 md:hidden">
-                        <form onSubmit={handleSearch} className="mb-4 flex items-center">
-                            <div className="relative w-full">
-                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                    <Search className="h-4 w-4 text-ink/40" />
-                                </div>
-                                <Input
-                                    type="search"
-                                    placeholder="Search for stores or coupons..."
-                                    className="h-10 w-full rounded-full border-ink/10 bg-white pl-10"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                            <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:bg-grape">
-                                Search
-                            </Button>
-                        </form>
                         <div className="flex flex-col gap-1">
                             {links.map((link) => (
                                 <Link

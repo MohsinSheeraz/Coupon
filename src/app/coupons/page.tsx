@@ -49,10 +49,10 @@ export default async function CouponsPage({
                     Browse our collection of verified coupons.
                 </p>
             </div>
-            <div className="flex item-center justify-between mb-5">
-                {/* Pagination */}
-                {view !== "all" && totalPages > 1 && (
-                    <div className="flex justify-start items-center space-x-2">
+            <div className="listing-controls">
+                <div className="listing-pagination-row">
+                    {view !== "all" && totalPages > 1 && (
+                        <div className="flex items-center space-x-2">
                         <Link
                             href={`?view=${view}&page=${prevPage}`}
                             className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage <= 1
@@ -85,14 +85,23 @@ export default async function CouponsPage({
                         >
                             Next
                         </Link>
-                    </div>
-                )}
+                        </div>
+                    )}
+                    <Link
+                        href="?view=all&page=1"
+                        className={`hidden whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors md:inline-flex ${view === "all"
+                            ? "bg-ink text-white border-ink"
+                            : "bg-white text-gray-700"
+                            }`}
+                    >
+                        Show all
+                    </Link>
+                </div>
 
-                {/* View Controls */}
-                <div className="flex justify-end gap-2">
+                <div className="listing-view-controls flex gap-2 overflow-x-auto md:hidden">
                     <Link
                         href={`?view=one&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "one"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "one"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}
@@ -101,7 +110,7 @@ export default async function CouponsPage({
                     </Link>
                     <Link
                         href={`?view=two&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "two"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "two"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}
@@ -110,13 +119,11 @@ export default async function CouponsPage({
                     </Link>
                     <Link
                         href={`?view=all&page=1`}
-                        className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "all"
+                        className={`whitespace-nowrap px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${view === "all"
                             ? "bg-ink text-white border-ink"
                             : "bg-white text-gray-700"
                             }`}
-                    >
-                        Show all
-                    </Link>
+                    >Show all</Link>
                 </div>
             </div>
 
