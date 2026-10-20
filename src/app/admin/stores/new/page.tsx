@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { X, Upload, LinkIcon, ImageIcon } from "lucide-react"
 import { createStore } from "@/lib/action"
+import { withPendingCategory } from "@/lib/categories"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function NewStorePage() {
@@ -31,15 +32,13 @@ export default function NewStorePage() {
     const [logoPreview, setLogoPreview] = useState<string>("")
     const [logoTab, setLogoTab] = useState<string>("upload")
 
-    const handleAddCategory = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && categoryInput.trim()) {
-            e.preventDefault()
-            if (!categories.includes(categoryInput.trim())) {
-                setCategories([...categories, categoryInput.trim()])
-            }
-            setCategoryInput("")
-        }
+const handleAddCategory = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && categoryInput.trim()) {
+        e.preventDefault()
+        setCategories(withPendingCategory(categories, categoryInput))
+        setCategoryInput("")
     }
+}
 
     const handleRemoveCategory = (category: string) => {
         setCategories(categories.filter((c) => c !== category))
@@ -86,17 +85,28 @@ export default function NewStorePage() {
             // and get back a URL. For this example, we'll use the preview URL if available
             const logoUrl =
                 logoTab === "upload" && logoPreview ? logoPreview : formData.logo || "/placeholder.svg?height=80&width=80"
+            const savedCategories = categoryInput.trim()
+                ? [...categories, categoryInput.trim()].filter(
+                    (category, index, allCategories) =>
+                        allCategories.findIndex(
+                            (candidate) => candidate.toLowerCase() === category.toLowerCase(),
+                        ) === index,
+                )
+                : categories
 
+
+            const finalCategories = withPendingCategory(categories, categoryInput)
             // Create the store
-            await createStore({
-                name: formData.name,
-                slug: formData.slug,
-                website: formData.website,
-                logo: logoUrl,
-                affiliateLink: formData.affiliateLink,
-                categories,
-                dealCount: 0
-            })
+            const result = await createStore({
+    name: formData.name,
+    slug: formData.slug,
+    website: formData.website,
+    logo: logoUrl,
+    affiliateLink: formData.affiliateLink,
+    categories: finalCategories,
+    dealCount: 0,
+})
+if (!result.success) throw new Error(result.error || "Failed to create store")
 
             toast.success("Store created successfully")
             router.push("/admin/stores")

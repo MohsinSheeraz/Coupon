@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { getAllCoupons } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
+import MobilePageSearch from "@/components/mobile-page-search"
 import type { Coupon } from "@/lib/models"
 
 interface SearchParams {
@@ -125,6 +126,7 @@ export default async function CouponsPage({
                             }`}
                     >Show all</Link>
                 </div>
+                <MobilePageSearch />
             </div>
 
             {/* Coupon Grid */}

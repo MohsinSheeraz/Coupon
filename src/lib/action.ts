@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { cleanCategories } from "./categories"
 import {
     createStore as dbCreateStore,
     updateStore as dbUpdateStore,
@@ -18,11 +19,13 @@ import type { Store, Coupon, SiteSettings } from "./models"
 export async function createStore(store: Omit<Store, "_id" | "createdAt" | "updatedAt" | "couponCount">) {
     try {
         await dbCreateStore({
-            ...store,
-            couponCount: 0,
-        })
-        revalidatePath("/admin/stores")
-        revalidatePath("/stores")
+    ...store,
+    categories: cleanCategories(store.categories),
+    couponCount: 0,
+})
+revalidatePath("/admin/stores")
+revalidatePath("/stores")
+revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error creating store:", error)
@@ -32,10 +35,14 @@ export async function createStore(store: Omit<Store, "_id" | "createdAt" | "upda
 
 export async function updateStore(id: string, store: Partial<Store>) {
     try {
-        await dbUpdateStore(id, store)
-        revalidatePath("/admin/stores")
-        revalidatePath(`/stores/${store.slug}`)
-        revalidatePath("/stores")
+await dbUpdateStore(
+    id,
+    store.categories ? { ...store, categories: cleanCategories(store.categories) } : store,
+)
+revalidatePath("/admin/stores")
+revalidatePath(`/stores/${store.slug}`)
+revalidatePath("/stores")
+revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error updating store:", error)
@@ -48,6 +55,7 @@ export async function deleteStore(id: string) {
         await dbDeleteStore(id)
         revalidatePath("/admin/stores")
         revalidatePath("/stores")
+        revalidatePath("/")
         return { success: true }
     } catch (error) {
         console.error("Error deleting store:", error)

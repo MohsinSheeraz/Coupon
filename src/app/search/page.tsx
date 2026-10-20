@@ -1,9 +1,9 @@
 import { searchCouponsAndStores } from "@/lib/data"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Store } from "lucide-react"
 import Link from "next/link"
 import { CouponCard } from "@/components/coupon-card"
+import { StoreCard } from "@/components/store-card"
 
 // 👇  add this line (or rename it however you like)
 type SearchParams = Record<string, string | string[] | undefined>
@@ -34,21 +34,7 @@ export default async function SearchPage({
                     <h2 className="font-display text-2xl font-semibold tracking-tight text-ink mb-6">Stores</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {stores.map((store) => (
-                            <Link key={store.id} href={`/stores/${store.slug}`}>
-                                <Card className="h-full rounded-3xl border-0 bg-white ring-1 ring-ink/5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-grape/30">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                                        <div className="h-16 w-16 rounded-full bg-white border flex items-center justify-center mb-4">
-                                            <img
-                                                src={store.logo || "/placeholder.svg"}
-                                                alt={store.name}
-                                                className="h-10 w-10 object-contain"
-                                            />
-                                        </div>
-                                        <h3 className="font-medium">{store.name}</h3>
-                                        <p className="text-sm text-gray-500 mt-1">{store.couponCount} Coupons</p>
-                                    </CardContent>
-                                </Card>
-                            </Link>
+                            <StoreCard key={store.id} store={store} />
                         ))}
                     </div>
                 </div>

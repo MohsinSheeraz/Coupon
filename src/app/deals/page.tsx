@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { getAllDeals } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
+import MobilePageSearch from "@/components/mobile-page-search"
 import type { Deal } from "@/lib/models"
 
 interface SearchParams {
@@ -129,6 +130,7 @@ export default async function DealsPage({
                         Show all
                     </Link>
                 </div>
+                <MobilePageSearch />
             </div>
 
             {/* Deals Grid */}
