@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { X, Upload, LinkIcon, ImageIcon } from "lucide-react";
 import { updateStore } from "@/lib/action";
@@ -72,15 +71,17 @@ export default function EditStore({ id }: { id: string }) {
   const handleAddCategory = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && categoryInput.trim()) {
       e.preventDefault();
-      if (!categories.includes(categoryInput.trim())) {
-        setCategories([...categories, categoryInput.trim()]);
-      }
+      setCategories((current) =>
+        withPendingCategory(current, categoryInput),
+      );
       setCategoryInput("");
     }
   };
 
-  const handleRemoveCategory = (category: string) => {
-    setCategories(categories.filter((c) => c !== category));
+  const handleRemoveCategory = (index: number) => {
+    setCategories((current) =>
+      current.filter((_, itemIndex) => itemIndex !== index),
+    );
   };
 
   const handleChange = (
@@ -136,16 +137,6 @@ export default function EditStore({ id }: { id: string }) {
         logoTab === "upload" && logoPreview
           ? logoPreview
           : formData.logo || "/placeholder.svg?height=80&width=80";
-      const savedCategories = categoryInput.trim()
-        ? [...categories, categoryInput.trim()].filter(
-            (category, index, allCategories) =>
-              allCategories.findIndex(
-                (candidate) =>
-                  candidate.toLowerCase() === category.toLowerCase(),
-              ) === index,
-          )
-        : categories;
-
       // Prepare the data for update
       const updateData = {
         name: formData.name,
@@ -241,18 +232,38 @@ export default function EditStore({ id }: { id: string }) {
                     <span className="text-gray-500 text-sm">(optional)</span>
                   </Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {categories.map((category) => (
-                      <Badge
-                        key={category}
-                        variant="secondary"
-                        className="flex items-center gap-1"
+                    {categories.map((category, index) => (
+                      <div
+                        key={`${category}-${index}`}
+                        className="inline-flex items-center gap-1 rounded-md border bg-secondary px-1"
                       >
-                        {category}
-                        <X
-                          className="h-3 w-3 cursor-pointer"
-                          onClick={() => handleRemoveCategory(category)}
+                        <Input
+                          aria-label={`Edit category ${category}`}
+                          value={category}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setCategories((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? value : item,
+                              ),
+                            );
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.preventDefault();
+                          }}
+                          className="h-8 w-auto min-w-24 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
                         />
-                      </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Remove ${category} category`}
+                          onClick={() => handleRemoveCategory(index)}
+                          className="size-7"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                   <Input
