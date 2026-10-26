@@ -5,6 +5,7 @@ import "./globals.css"
 import Navbar from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import Footer from "@/components/footer"
+import { PublicChrome } from "@/components/public-chrome"
 import { Toaster } from "sonner"
 
 const display = Bricolage_Grotesque({
@@ -38,12 +39,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col bg-paper">
-            <Navbar />
+            <PublicChrome>
+              <Navbar />
+            </PublicChrome>
             <main className="flex-1">
               {children}
               <Toaster />
             </main>
-            <Footer />
+            <PublicChrome>
+              <Footer />
+            </PublicChrome>
           </div>
         </ThemeProvider>
       </body>

@@ -2,8 +2,11 @@
 import clientPromise from "./mongodb"
 import { isToday, isYesterday, format } from 'date-fns'
 import { ObjectId } from "mongodb"
-import type { Store, Coupon, SiteSettings, Deal } from "@/lib/models"
+import { GridFSBucket } from "mongodb"
+import type { Store, Coupon, SiteSettings, Deal, Category } from "@/lib/models"
 import { debugLog } from "./debug"
+import { categoryKey, cleanCategories } from "./categories"
+import { CATEGORY_TILES } from "./images"
 
 // ─┐ helpers
 const toStr = (v: any) => (typeof v === "string" ? v : (v?.toString?.() ?? ""))
@@ -77,7 +80,242 @@ async function getCollections() {
         stores: db.collection<Store>("stores"),
         coupons: db.collection<Coupon>("coupons"),
         settings: db.collection<SiteSettings>("settings"),
+        categories: db.collection<Category>("categories"),
     }
+}
+
+function transformCategory(category: Category, storeCount = 0): Category {
+    return serialiseDates({
+        ...category,
+        id: toStr(category._id),
+        _id: undefined,
+        storeCount,
+    }) as Category
+}
+
+export async function syncLegacyCategories(): Promise<void> {
+    const { categories, stores } = await getCollections()
+    await categories.createIndex({ key: 1 }, { unique: true })
+    const storeDocs = await stores.find({}).toArray()
+    const legacyNames = new Map<string, string>()
+
+    for (const store of storeDocs) {
+        const legacyCategory = (store as Store & { category?: string | string[] }).category
+        const names = [
+            ...(Array.isArray(store.categories) ? store.categories : []),
+            ...(typeof legacyCategory === "string" ? [legacyCategory] : Array.isArray(legacyCategory) ? legacyCategory : []),
+        ]
+        for (const value of names) {
+            if (typeof value !== "string") continue
+            const name = value.trim()
+            const key = categoryKey(name)
+            if (key && !legacyNames.has(key)) legacyNames.set(key, name)
+        }
+    }
+
+    for (const [key, name] of legacyNames) {
+        const legacyImage = CATEGORY_TILES.find((tile) => categoryKey(tile.label) === key)?.image ?? ""
+        try {
+            await categories.updateOne(
+                { key },
+                {
+                    $setOnInsert: {
+                        name,
+                        key,
+                        image: legacyImage,
+                        status: "active",
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    },
+                },
+                { upsert: true },
+            )
+        } catch (error) {
+            if ((error as { code?: number }).code !== 11000) throw error
+        }
+    }
+
+    for (const store of storeDocs) {
+        const legacyCategory = (store as Store & { category?: string | string[] }).category
+        if ((!Array.isArray(store.categories) || store.categories.length === 0) && legacyCategory) {
+            const legacyValues = typeof legacyCategory === "string" ? [legacyCategory] : legacyCategory
+            const migratedCategories = cleanCategories(legacyValues)
+            if (migratedCategories.length) {
+                await stores.updateOne(
+                    { _id: store._id },
+                    { $set: { categories: migratedCategories }, $unset: { category: "" } },
+                )
+            }
+        }
+    }
+}
+
+export async function getManagedCategories(includeArchived = false): Promise<Category[]> {
+    const { categories, stores } = await getCollections()
+    const storeDocs = await stores.find({}).toArray()
+
+    const categoryFilter = includeArchived ? {} : { status: "active" as const }
+    const categoryDocs = await categories.find(categoryFilter).sort({ name: 1 }).toArray()
+    const counts = new Map<string, number>()
+
+    for (const store of storeDocs) {
+        const legacyCategory = (store as Store & { category?: string | string[] }).category
+        const names = [
+            ...(Array.isArray(store.categories) ? store.categories : []),
+            ...(typeof legacyCategory === "string" ? [legacyCategory] : Array.isArray(legacyCategory) ? legacyCategory : []),
+        ]
+        const storeKeys = new Set(names.filter((name): name is string => typeof name === "string").map(categoryKey))
+        for (const key of storeKeys) counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+
+    return categoryDocs.map((category) => transformCategory(category, counts.get(category.key) ?? 0))
+}
+
+function validateCategoryImage(image: string) {
+    if (image.startsWith("/api/category-images/")) return
+    let parsed: URL
+    try {
+        parsed = new URL(image)
+    } catch {
+        throw new Error("Provide a valid image URL or upload an image")
+    }
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        throw new Error("Image URL must use HTTP or HTTPS")
+    }
+}
+
+export async function createManagedCategory(name: string, image: string, storeIds: string[] = []): Promise<Category> {
+    const trimmedName = name.trim()
+    const key = categoryKey(trimmedName)
+    if (!trimmedName || trimmedName.length > 60 || !key) throw new Error("Enter a valid category name")
+    validateCategoryImage(image)
+
+    await syncLegacyCategories()
+    const { categories, stores } = await getCollections()
+    if (await categories.findOne({ key })) throw new Error("A category with this name already exists")
+
+    const selectedIds = Array.from(new Set(storeIds))
+    if (selectedIds.some((id) => !ObjectId.isValid(id))) throw new Error("Invalid store selection")
+    const selectedStores = selectedIds.length
+        ? await stores.find({ _id: { $in: selectedIds.map((id) => new ObjectId(id)) } }).toArray()
+        : []
+    if (selectedStores.length !== selectedIds.length) throw new Error("One or more selected stores no longer exist")
+
+    const now = new Date()
+    const category: Omit<Category, "_id" | "id"> = {
+        name: trimmedName,
+        key,
+        image,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+    }
+    let result
+    try {
+        result = await categories.insertOne(category as Category)
+    } catch (error) {
+        if ((error as { code?: number }).code === 11000) throw new Error("A category with this name already exists")
+        throw error
+    }
+    await Promise.all(selectedStores.map((store) => stores.updateOne(
+        { _id: store._id },
+        {
+            $set: { categories: cleanCategories([...(store.categories ?? []), trimmedName]), updatedAt: new Date() },
+            $unset: { category: "" },
+        },
+    )))
+    return transformCategory({ ...category, _id: result.insertedId } as Category, selectedStores.length)
+}
+
+async function removeStoredCategoryImage(image: string, exceptId?: ObjectId) {
+    const match = image.match(/^\/api\/category-images\/([a-f\d]{24})$/i)
+    if (!match) return
+    const { categories } = await getCollections()
+    if (await categories.findOne({ image, ...(exceptId ? { _id: { $ne: exceptId } } : {}) })) return
+    const client = await clientPromise
+    const bucket = new GridFSBucket(client.db("DealzyCoup"), { bucketName: "categoryImages" })
+    try {
+        await bucket.delete(new ObjectId(match[1]))
+    } catch {
+        // The category update remains valid if an old image was already removed.
+    }
+}
+
+export async function updateManagedCategory(
+    id: string,
+    updates: { name?: string; image?: string; status?: "active" | "archived"; storeIds?: string[] },
+): Promise<boolean> {
+    if (!ObjectId.isValid(id)) throw new Error("Invalid category")
+    const { categories, stores } = await getCollections()
+    const category = await categories.findOne({ _id: new ObjectId(id) })
+    if (!category) throw new Error("Category not found")
+
+    const name = updates.name?.trim() ?? category.name
+    const key = categoryKey(name)
+    if (!name || name.length > 60 || !key) throw new Error("Enter a valid category name")
+    if (key !== category.key && await categories.findOne({ key, _id: { $ne: category._id } })) {
+        throw new Error("A category with this name already exists")
+    }
+    const image = updates.image ?? category.image
+    validateCategoryImage(image)
+    const selectedIds = updates.storeIds === undefined ? undefined : Array.from(new Set(updates.storeIds))
+    if (selectedIds?.some((storeId) => !ObjectId.isValid(storeId))) throw new Error("Invalid store selection")
+    const selectedStoreIds = selectedIds ? new Set(selectedIds) : undefined
+    if (selectedIds) {
+        const matchedStores = await stores.countDocuments({ _id: { $in: selectedIds.map((storeId) => new ObjectId(storeId)) } })
+        if (matchedStores !== selectedIds.length) throw new Error("One or more selected stores no longer exist")
+    }
+
+    await categories.updateOne(
+        { _id: category._id },
+        { $set: { name, key, image, status: updates.status ?? category.status, updatedAt: new Date() } },
+    )
+
+    if (name !== category.name || selectedStoreIds) {
+        const storeDocs = await stores.find({}).toArray()
+        for (const store of storeDocs) {
+            const legacyCategory = (store as Store & { category?: string | string[] }).category
+            const currentCategories = Array.isArray(store.categories) && store.categories.length
+                ? store.categories
+                : typeof legacyCategory === "string"
+                    ? [legacyCategory]
+                    : Array.isArray(legacyCategory)
+                        ? legacyCategory
+                        : []
+            const isSelected = selectedStoreIds?.has(toStr(store._id))
+            let nextCategories = currentCategories.filter((value) => categoryKey(value) !== category.key)
+            if (isSelected === true || (isSelected === undefined && currentCategories.some((value) => categoryKey(value) === category.key))) {
+                nextCategories = cleanCategories([...nextCategories, name])
+            } else {
+                nextCategories = cleanCategories(nextCategories)
+            }
+            if (nextCategories.some((value, index) => value !== store.categories?.[index]) || nextCategories.length !== (store.categories?.length ?? 0)) {
+                await stores.updateOne(
+                    { _id: store._id },
+                    { $set: { categories: nextCategories, updatedAt: new Date() }, $unset: { category: "" } },
+                )
+            }
+        }
+    }
+
+    if (image !== category.image) await removeStoredCategoryImage(category.image, new ObjectId(id))
+    return true
+}
+
+export async function deleteManagedCategory(id: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) throw new Error("Invalid category")
+    const { categories } = await getCollections()
+    const category = await categories.findOne({ _id: new ObjectId(id) })
+    if (!category) throw new Error("Category not found")
+
+    const allCategories = await getManagedCategories(true)
+    if ((allCategories.find((item) => item.id === id)?.storeCount ?? 0) > 0) {
+        throw new Error("This category is used by stores. Archive it instead of deleting it.")
+    }
+
+    const result = await categories.deleteOne({ _id: new ObjectId(id) })
+    if (result.deletedCount && category.image) await removeStoredCategoryImage(category.image)
+    return result.deletedCount > 0
 }
 
 // Store functions

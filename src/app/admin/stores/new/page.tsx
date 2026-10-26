@@ -8,17 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { X, Upload, LinkIcon, ImageIcon } from "lucide-react"
 import { createStore } from "@/lib/action"
-import { withPendingCategory } from "@/lib/categories"
+import { CategoryPicker } from "@/components/admin/category-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function NewStorePage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const [categoryInput, setCategoryInput] = useState("")
     const [categories, setCategories] = useState<string[]>([])
     const [formData, setFormData] = useState({
         name: "",
@@ -31,18 +29,6 @@ export default function NewStorePage() {
     const [logoFile, setLogoFile] = useState<File | null>(null)
     const [logoPreview, setLogoPreview] = useState<string>("")
     const [logoTab, setLogoTab] = useState<string>("upload")
-
-const handleAddCategory = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && categoryInput.trim()) {
-        e.preventDefault()
-        setCategories(withPendingCategory(categories, categoryInput))
-        setCategoryInput("")
-    }
-}
-
-    const handleRemoveCategory = (category: string) => {
-        setCategories(categories.filter((c) => c !== category))
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
@@ -85,17 +71,6 @@ const handleAddCategory = (e: React.KeyboardEvent) => {
             // and get back a URL. For this example, we'll use the preview URL if available
             const logoUrl =
                 logoTab === "upload" && logoPreview ? logoPreview : formData.logo || "/placeholder.svg?height=80&width=80"
-            const savedCategories = categoryInput.trim()
-                ? [...categories, categoryInput.trim()].filter(
-                    (category, index, allCategories) =>
-                        allCategories.findIndex(
-                            (candidate) => candidate.toLowerCase() === category.toLowerCase(),
-                        ) === index,
-                )
-                : categories
-
-
-            const finalCategories = withPendingCategory(categories, categoryInput)
             // Create the store
             const result = await createStore({
     name: formData.name,
@@ -103,7 +78,7 @@ const handleAddCategory = (e: React.KeyboardEvent) => {
     website: formData.website,
     logo: logoUrl,
     affiliateLink: formData.affiliateLink,
-    categories: finalCategories,
+    categories,
     dealCount: 0,
 })
 if (!result.success) throw new Error(result.error || "Failed to create store")
@@ -162,28 +137,7 @@ if (!result.success) throw new Error(result.error || "Failed to create store")
                                         This will be used in the URL: /stores/{formData.slug || "store-name"}
                                     </p>
                                 </div>
-                                <div>
-                                    <Label htmlFor="categories" className="text-base font-medium">
-                                        Categories <span className="text-gray-500 text-sm">(optional)</span>
-                                    </Label>
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {categories.map((category) => (
-                                            <Badge key={category} variant="secondary" className="flex items-center gap-1">
-                                                {category}
-                                                <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveCategory(category)} />
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                    <Input
-                                        id="categories"
-                                        placeholder="Type a category and press Enter"
-                                        value={categoryInput}
-                                        onChange={(e) => setCategoryInput(e.target.value)}
-                                        onKeyDown={handleAddCategory}
-                                        className="mt-1.5"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">Press Enter to add multiple categories</p>
-                                </div>
+                                <CategoryPicker selected={categories} onChange={setCategories} />
 
                                 {/* <div>
                                     <Label htmlFor="website" className="text-base font-medium">

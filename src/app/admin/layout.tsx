@@ -2,6 +2,7 @@ import type React from "react"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/admin/sidebar"
+import { SiteSearch } from "@/components/site-search"
 import { COOKIE_NAME, isValidToken } from "@/lib/auth"
 
 // Never pre-render or cache admin pages at build time
@@ -22,7 +23,16 @@ export default async function AdminLayout({
         <div className="admin-shell flex min-h-screen">
             <Sidebar />
             <div className="admin-content flex-1 p-8 overflow-auto">
-                <div className="laptop-container animate-fadeIn">{children}</div>
+                <div className="laptop-container animate-fadeIn">
+                    <header className="sticky top-0 z-30 mb-6 flex max-w-6xl flex-col gap-3 border-b bg-[#f3f5ed]/95 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold uppercase text-teal-700">DealzyCoup</p>
+                            <h1 className="text-xl font-semibold">Admin Panel</h1>
+                        </div>
+                        <SiteSearch className="w-full sm:max-w-xl" />
+                    </header>
+                    {children}
+                </div>
             </div>
         </div>
     )

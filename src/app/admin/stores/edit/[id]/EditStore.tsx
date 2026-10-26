@@ -13,13 +13,12 @@ import { X, Upload, LinkIcon, ImageIcon } from "lucide-react";
 import { updateStore } from "@/lib/action";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Store } from "@/lib/models";
-import { withPendingCategory } from "@/lib/categories";
+import { CategoryPicker } from "@/components/admin/category-picker";
 
 export default function EditStore({ id }: { id: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [categoryInput, setCategoryInput] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Store>>({
     name: "",
@@ -67,22 +66,6 @@ export default function EditStore({ id }: { id: string }) {
 
     fetchData();
   }, [id]);
-
-  const handleAddCategory = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && categoryInput.trim()) {
-      e.preventDefault();
-      setCategories((current) =>
-        withPendingCategory(current, categoryInput),
-      );
-      setCategoryInput("");
-    }
-  };
-
-  const handleRemoveCategory = (index: number) => {
-    setCategories((current) =>
-      current.filter((_, itemIndex) => itemIndex !== index),
-    );
-  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -144,7 +127,7 @@ export default function EditStore({ id }: { id: string }) {
         website: formData.website,
         logo: logoUrl,
         affiliateLink: formData.affiliateLink,
-        categories: withPendingCategory(categories, categoryInput),
+        categories,
       };
 
       // Update the store
@@ -226,58 +209,7 @@ export default function EditStore({ id }: { id: string }) {
                   </p>
                 </div>
 
-                <div>
-                  <Label htmlFor="categories" className="text-base font-medium">
-                    Categories{" "}
-                    <span className="text-gray-500 text-sm">(optional)</span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {categories.map((category, index) => (
-                      <div
-                        key={`${category}-${index}`}
-                        className="inline-flex items-center gap-1 rounded-md border bg-secondary px-1"
-                      >
-                        <Input
-                          aria-label={`Edit category ${category}`}
-                          value={category}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setCategories((current) =>
-                              current.map((item, itemIndex) =>
-                                itemIndex === index ? value : item,
-                              ),
-                            );
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") e.preventDefault();
-                          }}
-                          className="h-8 w-auto min-w-24 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Remove ${category} category`}
-                          onClick={() => handleRemoveCategory(index)}
-                          className="size-7"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <Input
-                    id="categories"
-                    placeholder="Type a category and press Enter"
-                    value={categoryInput}
-                    onChange={(e) => setCategoryInput(e.target.value)}
-                    onKeyDown={handleAddCategory}
-                    className="mt-1.5"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-white mt-1">
-                    Press Enter to add multiple categories
-                  </p>
-                </div>
+                <CategoryPicker selected={categories} onChange={setCategories} />
                 {/* 
                                 <div>
                                     <Label htmlFor="website" className="text-base font-medium">

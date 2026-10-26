@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { CATEGORY_TILES, FALLBACK_GRADIENT, withFallback } from "@/lib/images"
-import { categoryKey } from "@/lib/categories"
+import type { Category } from "@/lib/models"
 
 type Tile = { label: string; image?: string }
 
@@ -29,14 +29,10 @@ function CategoryCards({ tiles, hidden = false }: { tiles: Tile[]; hidden?: bool
 }
 
 
-export default function CategorySlider({ categories }: { categories: string[] }) {
-  const labels = categories.length
-    ? categories
-    : CATEGORY_TILES.map((tile) => tile.label)
-  const tiles: Tile[] = labels.map((label) => ({
-    label,
-    image: CATEGORY_TILES.find((t) => categoryKey(t.label) === categoryKey(label))?.image,
-  }))
+export default function CategorySlider({ categories }: { categories: Category[] }) {
+  const tiles: Tile[] = categories.length
+    ? categories.map((category) => ({ label: category.name, image: category.image || undefined }))
+    : CATEGORY_TILES.map((tile) => ({ label: tile.label, image: tile.image }))
 
   return (
     <div className="category-slider">

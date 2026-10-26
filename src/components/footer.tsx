@@ -4,9 +4,14 @@ import { Ticket } from 'lucide-react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { CATEGORY_TILES  } from '@/lib/images'
+import { getManagedCategories } from '@/lib/data'
 // import { NEWSLETTER_IMAGE } from '@/lib/images'
 
-export default function Footer() {
+export default async function Footer() {
+    const managedCategories = await getManagedCategories()
+    const categoryLinks = managedCategories.length
+        ? managedCategories.slice(0, 3).map((category) => ({ label: category.name, query: category.name }))
+        : CATEGORY_TILES.slice(0, 3)
     return (
         <>
             {/* Newsletter */}
@@ -70,13 +75,13 @@ export default function Footer() {
                         <div>
                             <h3 className="mb-4 font-display text-base font-semibold text-white">Categories</h3>
                             <ul className="space-y-2.5">
-                                {CATEGORY_TILES.map((c) => (
-                                    <li key={c.label}>
+                                {categoryLinks.map((category) => (
+                                    <li key={category.label}>
                                         <Link
-                                            href={`/stores?category=${encodeURIComponent(c.query)}`}
+                                            href={`/stores?category=${encodeURIComponent(category.query)}`}
                                             className="transition-colors hover:text-citrus"
                                         >
-                                            {c.label}
+                                            {category.label}
                                         </Link>
                                     </li>
                                 ))}

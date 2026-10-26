@@ -1,7 +1,9 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { cookies } from "next/headers"
 import { cleanCategories } from "./categories"
+import { COOKIE_NAME, isValidToken } from "./auth"
 import {
     createStore as dbCreateStore,
     updateStore as dbUpdateStore,
@@ -12,8 +14,59 @@ import {
     incrementCouponUsage as dbIncrementCouponUsage,
     updateSettings as dbUpdateSettings,
     createDeal as dbCreateDeal,
+    createManagedCategory as dbCreateManagedCategory,
+    updateManagedCategory as dbUpdateManagedCategory,
+    deleteManagedCategory as dbDeleteManagedCategory,
 } from "@/lib/data"
 import type { Store, Coupon, SiteSettings } from "./models"
+
+async function requireAdmin() {
+    const token = (await cookies()).get(COOKIE_NAME)?.value
+    if (!(await isValidToken(token))) throw new Error("Unauthorized")
+}
+
+function revalidateCategoryViews() {
+    revalidatePath("/admin/categories")
+    revalidatePath("/admin/stores")
+    revalidatePath("/stores")
+    revalidatePath("/")
+}
+
+export async function createManagedCategory(name: string, image: string, storeIds: string[] = []) {
+    try {
+        await requireAdmin()
+        const category = await dbCreateManagedCategory(name, image, storeIds)
+        revalidateCategoryViews()
+        return { success: true, category }
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Failed to create category" }
+    }
+}
+
+export async function updateManagedCategory(
+    id: string,
+    updates: { name?: string; image?: string; status?: "active" | "archived"; storeIds?: string[] },
+) {
+    try {
+        await requireAdmin()
+        await dbUpdateManagedCategory(id, updates)
+        revalidateCategoryViews()
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Failed to update category" }
+    }
+}
+
+export async function deleteManagedCategory(id: string) {
+    try {
+        await requireAdmin()
+        await dbDeleteManagedCategory(id)
+        revalidateCategoryViews()
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Failed to delete category" }
+    }
+}
 
 // Store actions
 export async function createStore(store: Omit<Store, "_id" | "createdAt" | "updatedAt" | "couponCount">) {

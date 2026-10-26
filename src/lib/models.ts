@@ -15,6 +15,18 @@ export interface Store {
     updatedAt?: Date
 }
 
+export interface Category {
+    _id?: ObjectId | string
+    id?: string
+    name: string
+    key: string
+    image: string
+    status: "active" | "archived"
+    storeCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+}
+
 export interface Coupon {
     _id?: ObjectId | string
     id?: string // Add this line

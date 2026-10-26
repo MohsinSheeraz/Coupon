@@ -1,16 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { usePathname, useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import LOGO from "./../../public/LogoMain.png";
+import { SiteSearch } from "@/components/site-search";
 
 
 const links = [
@@ -21,10 +18,8 @@ const links = [
 ] as const
 
 export default function Navbar() {
-    const [searchQuery, setSearchQuery] = useState("")
     const [isScrolled, setIsScrolled] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const router = useRouter()
     const pathname = usePathname()
     const isListingPage = ["/stores", "/deals", "/coupons"].some(
         (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -43,14 +38,6 @@ export default function Navbar() {
         window.addEventListener("scroll", handleScroll, { passive: true })
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (searchQuery.trim()) {
-            router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
-            setMobileMenuOpen(false)
-        }
-    }
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href)
@@ -73,23 +60,7 @@ export default function Navbar() {
                         <Image src={LOGO} height={200} width={200} alt="" />
                     </Link>
 
-                    <form onSubmit={handleSearch} className="mx-8 hidden max-w-md flex-1 items-center md:flex">
-                        <div className="relative w-full">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <Search className="h-4 w-4 text-ink/40" />
-                            </div>
-                            <Input
-                                type="search"
-                                placeholder="Search for stores or coupons..."
-                                className="h-10 w-full rounded-full border-ink/10 bg-white! text-black pl-10 shadow-none transition-all duration-300 focus-visible:border-grape focus-visible:ring-grape/25"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:cursor-pointer hover:bg-grape text-white">
-                            Search
-                        </Button>
-                    </form>
+                    <SiteSearch className="mx-8 hidden max-w-md flex-1 items-center md:flex" />
 
                     <nav className="hidden items-center gap-1 md:flex">
                         {links.map((link) => (
@@ -124,26 +95,7 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {!isListingPage && (
-                    <form onSubmit={handleSearch} className="flex items-center pb-3 md:hidden">
-                        <div className="relative w-full">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <Search className="h-4 w-4 text-ink/40" />
-                            </div>
-                            <Input
-                                type="search"
-                                placeholder="Search for stores or coupons..."
-                                aria-label="Search for stores or coupons"
-                                className="h-10 w-full rounded-full border-ink/10 bg-white pl-10"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <Button type="submit" className="ml-2 h-10 rounded-full bg-ink px-5 hover:bg-grape text-white">
-                            Search
-                        </Button>
-                    </form>
-                )}
+                {!isListingPage && <SiteSearch className="pb-3 md:hidden" />}
 
                 {/* Mobile menu */}
                 {mobileMenuOpen && (

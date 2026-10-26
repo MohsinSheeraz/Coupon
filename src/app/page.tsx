@@ -7,7 +7,7 @@ import {
   Tag,
   TrendingUp,
 } from "lucide-react";
-import { getAllStores, getTrendingCoupons } from "@/lib/data";
+import { getManagedCategories, getTrendingCoupons } from "@/lib/data";
 import { CouponCard } from "@/components/coupon-card";
 import HeroCarousel from "@/components/hero-carousel";
 import CarouselSize from "@/components/Store-Carousel";
@@ -40,32 +40,10 @@ function SectionHeader({
 
 export const revalidate = 30; // seconds
 export default async function Home() {
-  const [trendingCoupons, stores] = await Promise.all([
+  const [trendingCoupons, categories] = await Promise.all([
     getTrendingCoupons(),
-    getAllStores(),
+    getManagedCategories(),
   ]);
-  const categories = Array.from(
-    new Map(
-      stores.flatMap((store) => {
-        const legacyCategory = (
-          store as typeof store & { category?: string | string[] }
-        ).category;
-        const savedCategories = store.categories?.length
-          ? store.categories
-          : legacyCategory
-            ? Array.isArray(legacyCategory)
-              ? legacyCategory
-              : [legacyCategory]
-            : [];
-
-        return savedCategories
-          .map((category) => category.trim())
-          .filter(Boolean)
-          .map((category) => [category.toLowerCase(), category] as const);
-      }),
-    ).values(),
-  ).sort((a, b) => a.localeCompare(b));
-
   return (
     <div className="homepage">
       {/* Hero Section */}

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Tag, Store, Settings, LogOut, Percent } from "lucide-react"
+import { LayoutDashboard, Tag, Store, Settings, LogOut, Percent, Layers } from "lucide-react"
 import { useState } from "react"
 
 export function Sidebar() {
@@ -33,6 +33,11 @@ export function Sidebar() {
             name: "Stores",
             href: "/admin/stores",
             icon: <Store className="h-5 w-5" />,
+        },
+        {
+            name: "Categories",
+            href: "/admin/categories",
+            icon: <Layers className="h-5 w-5" />,
         },
         {
             name: "Settings",
