@@ -3,9 +3,11 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useRouter } from "next/navigation"
+import type { Route } from "next"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 
 export default function MobilePageSearch() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -14,7 +16,9 @@ export default function MobilePageSearch() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+      const href = `/search?q=${encodeURIComponent(searchQuery.trim())}`
+      notifyNavigationStart(href)
+      router.push(href as Route)
     }
   }
 

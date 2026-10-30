@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { createCoupon } from "@/lib/action"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 import type { Store } from "@/lib/models"
 import { LinkIcon, Upload, ImageIcon, X, Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -101,6 +102,7 @@ export default function NewCouponPage() {
             })
 
             toast.success("Coupon created successfully")
+            notifyNavigationStart("/admin/coupons")
             router.push("/admin/coupons")
         } catch (error) {
             console.error("Error creating coupon:", error)

@@ -6,7 +6,10 @@ import Navbar from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import Footer from "@/components/footer"
 import { PublicChrome } from "@/components/public-chrome"
+import { PublicPresenceTracker } from "@/components/public-presence-tracker"
+import { NavigationFeedback } from "@/components/navigation-feedback"
 import { Toaster } from "sonner"
+import { Suspense } from "react"
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -38,9 +41,15 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <NavigationFeedback />
+          </Suspense>
           <div className="flex min-h-screen flex-col bg-paper">
             <PublicChrome>
               <Navbar />
+            </PublicChrome>
+            <PublicChrome>
+              <PublicPresenceTracker />
             </PublicChrome>
             <main className="flex-1">
               {children}

@@ -20,10 +20,10 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="admin-shell flex min-h-screen">
+        <div className="admin-shell flex h-screen overflow-hidden">
             <Sidebar />
-            <div className="admin-content flex-1 p-8 overflow-auto">
-                <div className="laptop-container animate-fadeIn">
+            <div className="admin-content min-h-0 flex-1 overflow-auto">
+                <div className="laptop-container animate-fadeIn px-8 pb-8">
                     <header className="sticky top-0 z-30 mb-6 flex max-w-6xl flex-col gap-3 border-b bg-[#f3f5ed]/95 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <p className="text-xs font-semibold uppercase text-teal-700">DealzyCoup</p>

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { X, Upload, LinkIcon, ImageIcon } from "lucide-react";
 import { updateStore } from "@/lib/action";
+import { notifyNavigationStart } from "@/lib/navigation-feedback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Store } from "@/lib/models";
 import { CategoryPicker } from "@/components/admin/category-picker";
@@ -135,6 +136,7 @@ export default function EditStore({ id }: { id: string }) {
 
       if (result.success) {
         toast.success("Store updated successfully");
+        notifyNavigationStart("/admin/stores");
         router.push("/admin/stores");
         router.refresh();
       } else {

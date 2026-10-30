@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LinkIcon, Upload, ImageIcon, X } from "lucide-react"
 import { toast } from "sonner"
 import { updateCoupon } from "@/lib/action"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 import type { Store, Coupon } from "@/lib/models"
 
 
@@ -114,6 +115,7 @@ export default function EditCouponClient({ id }: { id: string }) {
             if (!result.success) throw new Error(result.error || "Failed to update coupon")
 
             toast.success("Coupon updated successfully")
+            notifyNavigationStart("/admin/coupons")
             router.push("/admin/coupons")
             router.refresh()
         } catch (error) {

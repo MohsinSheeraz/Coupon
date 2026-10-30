@@ -1,12 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import Image from "next/image"
+import { useEffect, useState } from "react"
 
 export default function AdminLoginPage() {
+  const [showReveal, setShowReveal] = useState(true)
   const [user, setUser] = useState("")
   const [pass, setPass] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setShowReveal(false), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +42,20 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="admin-login flex items-center justify-center min-h-screen p-4">
+    <div className="admin-login flex min-h-screen items-center justify-center p-4">
+      {showReveal && (
+        <div className="admin-login-reveal" aria-hidden="true">
+          <span className="admin-login-reveal-text">WOAHH</span>
+          <Image
+            src="/reality.png"
+            alt=""
+            width={594}
+            height={576}
+            priority
+            className="admin-login-reveal-image"
+          />
+        </div>
+      )}
       <form
         onSubmit={onSubmit}
         className="w-full max-w-sm bg-gray-900/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6"

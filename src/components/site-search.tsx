@@ -3,9 +3,11 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useRouter } from "next/navigation"
+import type { Route } from "next"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 
 export function SiteSearch({ className = "" }: { className?: string }) {
     const [query, setQuery] = useState("")
@@ -13,7 +15,11 @@ export function SiteSearch({ className = "" }: { className?: string }) {
 
     const handleSearch = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        if (query.trim()) router.push(`/search?q=${encodeURIComponent(query)}`)
+        if (query.trim()) {
+            const href = `/search?q=${encodeURIComponent(query.trim())}`
+            notifyNavigationStart(href)
+            router.push(href as Route)
+        }
     }
 
     return (

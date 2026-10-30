@@ -45,22 +45,39 @@ function transformStore(s: any) {
     })
 }
 
-async function transformStoresWithOfferCounts(storeDocs: Store[]): Promise<Store[]> {
+async function getOfferCountsByStore() {
     const { coupons } = await getCollections()
-    const offers = await coupons.find({}, { projection: { storeId: 1, type: 1 } }).toArray()
     const countsByStore = new Map<string, { couponCount: number; dealCount: number }>()
+    const offerCounts = await coupons.aggregate<{
+        _id: ObjectId | string
+        couponCount: number
+        dealCount: number
+    }>([
+        {
+            $group: {
+                _id: "$storeId",
+                couponCount: { $sum: { $cond: [{ $eq: ["$type", "deal"] }, 0, 1] } },
+                dealCount: { $sum: { $cond: [{ $eq: ["$type", "deal"] }, 1, 0] } },
+            },
+        },
+    ]).toArray()
 
-    offers.forEach((offer) => {
-        const storeId = toStr(offer.storeId)
-        const counts = countsByStore.get(storeId) ?? { couponCount: 0, dealCount: 0 }
-        if (offer.type === "deal") {
-            counts.dealCount += 1
-        } else {
-            counts.couponCount += 1
-        }
-        countsByStore.set(storeId, counts)
-    })
+    for (const counts of offerCounts) {
+        const storeId = toStr(counts._id)
+        const existing = countsByStore.get(storeId) ?? { couponCount: 0, dealCount: 0 }
+        countsByStore.set(storeId, {
+            couponCount: existing.couponCount + counts.couponCount,
+            dealCount: existing.dealCount + counts.dealCount,
+        })
+    }
 
+    return countsByStore
+}
+
+function transformStoresWithOfferCounts(
+    storeDocs: Store[],
+    countsByStore: Map<string, { couponCount: number; dealCount: number }>,
+): Store[] {
     return storeDocs.map((store) => {
         const counts = countsByStore.get(toStr(store._id)) ?? { couponCount: 0, dealCount: 0 }
         return {
@@ -70,6 +87,35 @@ async function transformStoresWithOfferCounts(storeDocs: Store[]): Promise<Store
     })
 }
 // ─┘
+
+async function populateOffersWithStores<T extends Coupon>(offers: T[]) {
+    const { stores } = await getCollections()
+    const storeIds = Array.from(new Set(
+        offers
+            .map((offer) => toStr(offer.storeId))
+            .filter((id) => ObjectId.isValid(id)),
+    )).map((id) => new ObjectId(id))
+    const storeDocs = storeIds.length
+        ? await stores.find(
+            { _id: { $in: storeIds } },
+            { projection: { name: 1, slug: 1, logo: 1 } },
+        ).toArray()
+        : []
+    const storesById = new Map(storeDocs.map((store) => [
+        toStr(store._id),
+        {
+            id: toStr(store._id),
+            name: store.name,
+            slug: store.slug,
+            logo: store.logo,
+        },
+    ]))
+
+    return offers.map((offer) => ({
+        ...offer,
+        store: storesById.get(toStr(offer.storeId)),
+    }))
+}
 
 // Get MongoDB collections
 async function getCollections() {
@@ -321,20 +367,29 @@ export async function deleteManagedCategory(id: string): Promise<boolean> {
 // Store functions
 export async function getAllStores(): Promise<Store[]> {
     const { stores } = await getCollections()
-    const allStores = await stores.find({}).sort({ name: 1 }).toArray()
-    return transformStoresWithOfferCounts(allStores)
+    const [allStores, countsByStore] = await Promise.all([
+        stores.find({}).sort({ name: 1 }).toArray(),
+        getOfferCountsByStore(),
+    ])
+    return transformStoresWithOfferCounts(allStores, countsByStore)
 }
 
 export async function getStoreBySlug(slug: string): Promise<Store | null> {
     const { stores } = await getCollections()
-    const store = await stores.findOne({ slug })
-    return store ? (await transformStoresWithOfferCounts([store]))[0] : null
+    const [store, countsByStore] = await Promise.all([
+        stores.findOne({ slug }),
+        getOfferCountsByStore(),
+    ])
+    return store ? transformStoresWithOfferCounts([store], countsByStore)[0] : null
 }
 
 export async function getStoreById(id: string): Promise<Store | null> {
     const { stores } = await getCollections()
-    const store = await stores.findOne({ _id: new ObjectId(id) })
-    return store ? (await transformStoresWithOfferCounts([store]))[0] : null
+    const [store, countsByStore] = await Promise.all([
+        stores.findOne({ _id: new ObjectId(id) }),
+        getOfferCountsByStore(),
+    ])
+    return store ? transformStoresWithOfferCounts([store], countsByStore)[0] : null
 }
 
 export async function getPopularStores(limit = 6): Promise<Store[]> {
@@ -400,27 +455,53 @@ export async function deleteStore(id: string): Promise<boolean> {
 
 // Coupon functions
 export async function getAllCoupons(): Promise<Coupon[]> {
-    const { coupons, stores } = await getCollections()
+    const { coupons } = await getCollections()
     const allCoupons = await coupons.find({}).sort({ createdAt: -1 }).toArray()
+    const populatedCoupons = await populateOffersWithStores(allCoupons)
+    return populatedCoupons.map(transformCoupon)
+}
 
-    // Populate store information
-    const populatedCoupons = await Promise.all(
-        allCoupons.map(async (coupon) => {
-            const store = await stores.findOne({ _id: new ObjectId(coupon.storeId.toString()) })
-            return {
-                ...coupon,
-                store: store
-                    ? {
-                        id: store._id.toString(),
-                        name: store.name,
-                        slug: store.slug,
-                        logo: store.logo,
-                    }
-                    : undefined,
-            }
+export async function getOffersByType(type: "code" | "deal"): Promise<Coupon[]> {
+    const { coupons } = await getCollections()
+    const offers = await coupons.find({ type }).sort({ createdAt: -1 }).toArray()
+    const populatedOffers = await populateOffersWithStores(offers)
+    return populatedOffers.map(transformCoupon)
+}
+
+export async function getAdminDashboardStats() {
+    const { coupons } = await getCollections()
+    const offerStats = await coupons.aggregate<{
+        _id: string | null
+        itemCount: number
+        usageCount: number
+    }>([
+        {
+            $group: {
+                _id: "$type",
+                itemCount: { $sum: 1 },
+                usageCount: { $sum: { $ifNull: ["$usedCount", 0] } },
+            },
+        },
+    ]).toArray()
+
+    return offerStats.reduce(
+        (stats, group) => ({
+            allItems: stats.allItems + group.itemCount,
+            coupons: stats.coupons + (group._id === "code" ? group.itemCount : 0),
+            deals: stats.deals + (group._id === "deal" ? group.itemCount : 0),
+            usage: stats.usage + group.usageCount,
         }),
+        { allItems: 0, coupons: 0, deals: 0, usage: 0 },
     )
+}
 
+export async function getRecentCoupons(limit = 5): Promise<Coupon[]> {
+    const { coupons } = await getCollections()
+    const recentCoupons = await coupons.find({ type: "code" })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .toArray()
+    const populatedCoupons = await populateOffersWithStores(recentCoupons)
     return populatedCoupons.map(transformCoupon)
 }
 
@@ -452,9 +533,10 @@ export async function getCouponById(id: string): Promise<Coupon | null> {
 
 export async function getCouponsByStore(storeId: string): Promise<Coupon[]> {
     const { coupons, stores } = await getCollections()
-    const storeCoupons = await coupons.find({ storeId: new ObjectId(storeId) }).toArray()
-
-    const store = await stores.findOne({ _id: new ObjectId(storeId) })
+    const [storeCoupons, store] = await Promise.all([
+        coupons.find({ storeId: new ObjectId(storeId) }).toArray(),
+        stores.findOne({ _id: new ObjectId(storeId) }),
+    ])
 
     return storeCoupons.map((coupon) =>
         transformCoupon({
@@ -472,28 +554,10 @@ export async function getCouponsByStore(storeId: string): Promise<Coupon[]> {
 }
 
 export async function getTrendingCoupons(limit = 6): Promise<Coupon[]> {
-    const { coupons, stores } = await getCollections()
-
+    const { coupons } = await getCollections()
     const trendingCoupons = await coupons.find({}).sort({ usedCount: -1 }).limit(limit).toArray()
-
-    const populated = await Promise.all(
-        trendingCoupons.map(async (c) => {
-            const store = await stores.findOne({ _id: new ObjectId(c.storeId.toString()) })
-            return {
-                ...c,
-                store: store
-                    ? {
-                        id: store._id.toString(),
-                        name: store.name,
-                        slug: store.slug,
-                        logo: store.logo,
-                    }
-                    : undefined,
-            }
-        }),
-    )
-
-    return populated.map(transformCoupon) // <-- now 100 % plain
+    const populated = await populateOffersWithStores(trendingCoupons)
+    return populated.map(transformCoupon)
 }
 
 export async function createCoupon(coupon: Omit<Coupon, "_id" | "createdAt" | "updatedAt">): Promise<Coupon> {
@@ -578,28 +642,7 @@ export async function incrementCouponUsage(id: string): Promise<boolean> {
 
 // Deal functions
 export async function getAllDeals(): Promise<Deal[]> {
-    const { coupons, stores } = await getCollections()
-    const allDeals = await coupons.find({ type: "deal" }).sort({ createdAt: -1 }).toArray()
-
-    // Populate store information
-    const populatedDeals = await Promise.all(
-        allDeals.map(async (deal) => {
-            const store = await stores.findOne({ _id: new ObjectId(deal.storeId.toString()) })
-            return {
-                ...deal,
-                store: store
-                    ? {
-                        id: store._id.toString(),
-                        name: store.name,
-                        slug: store.slug,
-                        logo: store.logo,
-                    }
-                    : undefined,
-            }
-        }),
-    )
-
-    return populatedDeals.map(transformCoupon)
+    return getOffersByType("deal")
 }
 
 export async function getDealById(id: string): Promise<Deal | null> {
@@ -648,49 +691,30 @@ export async function searchCouponsAndStores(query: string): Promise<{
     const { coupons, stores } = await getCollections()
     const normalizedQuery = query.toLowerCase()
 
-    // Search for stores
-    const matchedStores = await stores
-        .find({
+    const [matchedStores, matchedCoupons, countsByStore] = await Promise.all([
+        stores.find({
             $or: [
                 { name: { $regex: normalizedQuery, $options: "i" } },
                 { description: { $regex: normalizedQuery, $options: "i" } },
                 { categories: { $in: [new RegExp(normalizedQuery, "i")] } },
             ],
         })
-        .toArray()
-
-    // Search for coupons
-    const matchedCoupons = await coupons
-        .find({
+        .toArray(),
+        coupons.find({
             $or: [
                 { title: { $regex: normalizedQuery, $options: "i" } },
                 { description: { $regex: normalizedQuery, $options: "i" } },
                 { code: { $regex: normalizedQuery, $options: "i" } },
             ],
         })
-        .toArray()
-
-    // Populate store information for coupons
-    const populatedCoupons = await Promise.all(
-        matchedCoupons.map(async (coupon) => {
-            const store = await stores.findOne({ _id: new ObjectId(coupon.storeId.toString()) })
-            return {
-                ...coupon,
-                store: store
-                    ? {
-                        id: store._id.toString(),
-                        name: store.name,
-                        slug: store.slug,
-                        logo: store.logo,
-                    }
-                    : undefined,
-            }
-        }),
-    )
+        .toArray(),
+        getOfferCountsByStore(),
+    ])
+    const populatedCoupons = await populateOffersWithStores(matchedCoupons)
 
     return {
         coupons: populatedCoupons.map(transformCoupon),
-        stores: await transformStoresWithOfferCounts(matchedStores),
+        stores: transformStoresWithOfferCounts(matchedStores, countsByStore),
     }
 }
 

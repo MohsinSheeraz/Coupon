@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { X, Upload, LinkIcon, ImageIcon } from "lucide-react"
 import { createStore } from "@/lib/action"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 import { CategoryPicker } from "@/components/admin/category-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -84,6 +85,7 @@ export default function NewStorePage() {
 if (!result.success) throw new Error(result.error || "Failed to create store")
 
             toast.success("Store created successfully")
+            notifyNavigationStart("/admin/stores")
             router.push("/admin/stores")
         } catch (error) {
             console.error("Error creating store:", error)
@@ -137,7 +139,7 @@ if (!result.success) throw new Error(result.error || "Failed to create store")
                                         This will be used in the URL: /stores/{formData.slug || "store-name"}
                                     </p>
                                 </div>
-                                <CategoryPicker selected={categories} onChange={setCategories} />
+                                <CategoryPicker selected={categories} onChange={setCategories} variant="new-store" />
 
                                 {/* <div>
                                     <Label htmlFor="website" className="text-base font-medium">

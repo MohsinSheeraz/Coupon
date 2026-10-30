@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { createDeal } from "@/lib/action"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 import type { Store } from "@/lib/models"
 import { LinkIcon, Upload, ImageIcon, X, Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -97,6 +98,7 @@ export default function NewDealPage() {
             })
 
             toast.success("Deal created successfully")
+            notifyNavigationStart("/admin/deals")
             router.push("/admin/deals")
         } catch (error) {
             console.error("Error creating deal:", error)

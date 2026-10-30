@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { updateCoupon } from "@/lib/action"
+import { notifyNavigationStart } from "@/lib/navigation-feedback"
 import type { Store, Deal } from "@/lib/models"
 import { LinkIcon, Upload, ImageIcon, X } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -125,6 +126,7 @@ export default function EditDeal({ id }: { id: string }) {
 
             if (result.success) {
                 toast.success("Deal updated successfully")
+                notifyNavigationStart("/admin/deals")
                 router.push("/admin/deals")
                 router.refresh()
             } else {

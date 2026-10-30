@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getAllCoupons } from "@/lib/data"
+import { getOffersByType } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -12,13 +12,12 @@ import {
 import { Plus, Edit } from "lucide-react"
 import { deleteCoupon } from "@/lib/action"
 import { DeleteItemButton } from "@/components/DeleteButton"
+import { ExpandableText } from "@/components/admin/expandable-text"
 
 
 export const revalidate = 30   // seconds
 export default async function AdminCouponsPage() {
-    const allCoupons = await getAllCoupons()
-    // only show type==="code"
-    const coupons = allCoupons.filter((c) => c.type === "code")
+    const coupons = await getOffersByType("code")
 
     return (
         <div className="animate-fadeIn">
@@ -31,16 +30,16 @@ export default async function AdminCouponsPage() {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-lg shadow-card overflow-hidden border border-dark-700">
-                <Table>
+            <div className="admin-table-panel bg-white rounded-lg shadow-card border border-dark-700">
+                <Table containerClassName="admin-table-viewport" className="min-w-[760px] table-fixed">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Store</TableHead>
-                            <TableHead>Code</TableHead>
-                            <TableHead>Expiry Date</TableHead>
-                            <TableHead>Usage</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="w-[30%] admin-table-title">Title</TableHead>
+                            <TableHead className="w-[16%]">Store</TableHead>
+                            <TableHead className="w-[15%]">Code</TableHead>
+                            <TableHead className="w-[15%]">Expiry Date</TableHead>
+                            <TableHead className="w-[9%]">Usage</TableHead>
+                            <TableHead className="w-[15%] text-right admin-table-actions">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -49,14 +48,14 @@ export default async function AdminCouponsPage() {
                                 key={coupon.id}
                                 className="hover:bg-dark-700 transition-colors"
                             >
-                                <TableCell className="font-medium text-gray-900 ">
-                                    {coupon.title}
+                                <TableCell className="admin-table-title font-medium text-gray-900">
+                                    <ExpandableText text={coupon.title} maxLength={32} />
                                 </TableCell>
-                                <TableCell className="text-gray-900 ">
-                                    {coupon.store?.name}
+                                <TableCell className="text-gray-900">
+                                    {coupon.store?.name && <ExpandableText text={coupon.store.name} maxLength={20} />}
                                 </TableCell>
-                                <TableCell className="text-gray-900 ">
-                                    {coupon.code || "-"}
+                                <TableCell className="text-gray-900">
+                                    {coupon.code ? <ExpandableText text={coupon.code} maxLength={16} /> : "-"}
                                 </TableCell>
                                 <TableCell className="text-gray-900 ">
                                     {new Date(coupon.expiryDate).toLocaleDateString()}
@@ -64,7 +63,7 @@ export default async function AdminCouponsPage() {
                                 <TableCell className="text-gray-900 ">
                                     {coupon.usedCount}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="admin-table-actions text-right">
                                     <div className="flex justify-end gap-2">
                                         <Link href={`/admin/coupons/edit/${coupon.id}`}>
                                             <Button

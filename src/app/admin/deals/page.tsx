@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Edit, ExternalLink } from "lucide-react"
 import { DeleteItemButton } from "@/components/DeleteButton"
+import { ExpandableText } from "@/components/admin/expandable-text"
 
 export const revalidate = 30   // seconds
 export default async function AdminDealsPage() {
@@ -21,37 +22,48 @@ export default async function AdminDealsPage() {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-lg shadow-card overflow-hidden border border-dark-700">
-                <Table>
+            <div className="admin-table-panel bg-white rounded-lg shadow-card border border-dark-700">
+                <Table containerClassName="admin-table-viewport" className="min-w-[800px] table-fixed">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Store</TableHead>
-                            <TableHead>Affiliate Link</TableHead>
-                            <TableHead>Expiry Date</TableHead>
-                            <TableHead>Usage</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="w-[28%] admin-table-title">Title</TableHead>
+                            <TableHead className="w-[14%]">Store</TableHead>
+                            <TableHead className="w-[23%]">Affiliate Link</TableHead>
+                            <TableHead className="w-[15%]">Expiry Date</TableHead>
+                            <TableHead className="w-[8%]">Usage</TableHead>
+                            <TableHead className="w-[12%] text-right admin-table-actions">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {deals.map((deal) => (
                             <TableRow key={deal.id} className="hover:bg-dark-700 transition-colors">
-                                <TableCell className="font-medium text-gray-600 ">{deal.title}</TableCell>
-                                <TableCell className="text-gray-600 ">{deal.store?.name}</TableCell>
+                                <TableCell className="admin-table-title font-medium text-gray-600">
+                                    <ExpandableText text={deal.title} maxLength={32} />
+                                </TableCell>
+                                <TableCell className="text-gray-600">
+                                    {deal.store?.name && <ExpandableText text={deal.store.name} maxLength={20} />}
+                                </TableCell>
                                 <TableCell>
                                     <a
                                         href={deal.affiliateLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center text-teal-400 hover:text-teal-500"
+                                        className="flex max-w-full items-center overflow-hidden text-teal-400 hover:text-teal-500"
+                                        title={deal.affiliateLink}
                                     >
-                                        {(deal.affiliateLink ?? '').substring(0, 30)}...
-                                        <ExternalLink className="ml-1 h-3 w-3" />
+                                        <span className="truncate">{(deal.affiliateLink ?? '').substring(0, 30)}...</span>
+                                        <ExternalLink className="ml-1 h-3 w-3 shrink-0" />
                                     </a>
+                                    <ExpandableText
+                                        text={deal.affiliateLink ?? ""}
+                                        maxLength={30}
+                                        showPreview={false}
+                                        triggerLabel="View full link"
+                                    />
                                 </TableCell>
                                 <TableCell className="text-gray-600 ">{new Date(deal.expiryDate).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-gray-600 ">{deal.usedCount}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="admin-table-actions text-right">
                                     <div className="flex justify-end gap-2">
                                         <Link href={`/admin/deals/edit/${deal.id}`}>
                                             <Button

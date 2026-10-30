@@ -1,27 +1,16 @@
 import Link from "next/link"
-import { getAllCoupons, getAllStores } from "@/lib/data"
+import { getAllStores } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Edit, ExternalLink } from "lucide-react"
 import { deleteStore } from "@/lib/action"
 import { DeleteItemButton } from "@/components/DeleteButton"
+import { ExpandableText } from "@/components/admin/expandable-text"
 
 
 export const revalidate = 30   // seconds
 export default async function AdminStoresPage() {
-    const [stores, coupons] = await Promise.all([getAllStores(), getAllCoupons()])
-    const countsByStore = new Map<string, { couponCount: number; dealCount: number }>()
-
-    coupons.forEach((coupon) => {
-        const storeId = coupon.storeId.toString()
-        const counts = countsByStore.get(storeId) ?? { couponCount: 0, dealCount: 0 }
-        if (coupon.type === "deal") {
-            counts.dealCount += 1
-        } else {
-            counts.couponCount += 1
-        }
-        countsByStore.set(storeId, counts)
-    })
+    const stores = await getAllStores()
 
     return (
         <div className="animate-fadeIn">
@@ -34,27 +23,31 @@ export default async function AdminStoresPage() {
                 </Link>
             </div>
 
-            <div className="bg-white rounded-lg shadow-card overflow-hidden border border-dark-700">
-                <Table>
+            <div className="admin-table-panel bg-white rounded-lg shadow-card border border-dark-700">
+                <Table containerClassName="admin-table-viewport" className="min-w-[760px] table-fixed">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Store</TableHead>
-                            <TableHead>Store URL</TableHead>
-                            <TableHead>Categories</TableHead>
-                            <TableHead>Coupons</TableHead>
-                            <TableHead>Deals</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="w-[23%] admin-table-title">Store</TableHead>
+                            <TableHead className="w-[23%]">Store URL</TableHead>
+                            <TableHead className="w-[22%]">Categories</TableHead>
+                            <TableHead className="w-[8%]">Coupons</TableHead>
+                            <TableHead className="w-[8%]">Deals</TableHead>
+                            <TableHead className="w-[16%] text-right admin-table-actions">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {stores.map((store) => (
                             <TableRow key={store.id} className="hover:bg-dark-700 transition-colors">
-                                <TableCell>
+                                <TableCell className="admin-table-title">
                                     <div className="flex items-center">
-                                        <div className="h-10 w-10 rounded-full bg-dark-700 flex items-center justify-center mr-3 border border-dark-600">
+                                        <div className="h-10 w-10 shrink-0 rounded-full bg-dark-700 flex items-center justify-center mr-3 border border-dark-600">
                                             <img src={store.logo || "/placeholder.svg"} alt={store.name} className="h-6 w-6 object-contain" />
                                         </div>
-                                        <span className="font-medium text-gray-800 ">{store.name}</span>
+                                        <ExpandableText
+                                            text={store.name}
+                                            maxLength={20}
+                                            className="min-w-0 flex-1 font-medium text-gray-800"
+                                        />
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -62,11 +55,18 @@ export default async function AdminStoresPage() {
                                         href={`/stores/${store.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center text-teal-400 hover:text-teal-500"
+                                        className="flex max-w-full items-center text-teal-400 hover:text-teal-500"
+                                        title={store.slug.replace(/^https?:\/\//, "")}
                                     >
-                                        {store.slug.replace(/^https?:\/\//, "")}
-                                        <ExternalLink className="ml-1 h-3 w-3" />
+                                        <span className="truncate">{store.slug.replace(/^https?:\/\//, "")}</span>
+                                        <ExternalLink className="ml-1 h-3 w-3 shrink-0" />
                                     </a>
+                                    <ExpandableText
+                                        text={store.slug.replace(/^https?:\/\//, "")}
+                                        maxLength={30}
+                                        showPreview={false}
+                                        triggerLabel="View full URL"
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1">
@@ -79,17 +79,22 @@ export default async function AdminStoresPage() {
                                             </span>
                                         ))}
                                         {store.categories.length > 2 && (
-                                            <span className="text-xs text-gray-500 ">+{store.categories.length - 2} more</span>
+                                            <ExpandableText
+                                                text={store.categories.join(", ")}
+                                                maxLength={0}
+                                                showPreview={false}
+                                                triggerLabel={`View all ${store.categories.length} categories`}
+                                            />
                                         )}
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-gray-800 ">
-                                    {countsByStore.get(store.id ?? "")?.couponCount ?? 0}
+                                    {store.couponCount}
                                 </TableCell>
                                 <TableCell className="text-gray-800 ">
-                                    {countsByStore.get(store.id ?? "")?.dealCount ?? 0}
+                                    {store.dealCount}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="admin-table-actions text-right">
                                     <div className="flex justify-end gap-2">
                                         <Link href={`/admin/stores/edit/${store.id}`}>
                                             <Button

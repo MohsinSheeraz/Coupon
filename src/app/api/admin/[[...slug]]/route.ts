@@ -6,6 +6,7 @@ import {
   COOKIE_NAME,
   makeToken,
 } from "@/lib/auth";
+import { countActiveVisitors } from "@/lib/presence";
 
 type Ctx = { params: Promise<{ slug?: string[] }> };
 
@@ -67,6 +68,19 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
       console.error("Error fetching settings:", error);
       return NextResponse.json(
         { error: "Failed to fetch settings" },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (slug?.[0] === "presence") {
+    try {
+      const count = await countActiveVisitors(3);
+      return NextResponse.json({ count }, { headers: { "Cache-Control": "no-store" } });
+    } catch (error) {
+      console.error("Error fetching active user count:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch active user count" },
         { status: 500 },
       );
     }
