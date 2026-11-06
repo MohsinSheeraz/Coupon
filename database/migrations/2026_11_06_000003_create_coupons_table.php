@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('expiry_date', 40)->nullable();
             $table->unsignedInteger('used_count')->default(0)->index();
-            $table->text('logo')->nullable();
+            $table->longText('logo')->nullable();
             $table->timestamps();
         });
     }

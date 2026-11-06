@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->index();
-            $table->text('logo')->nullable();
+            $table->longText('logo')->nullable();
             $table->text('website')->nullable();
             $table->text('affiliate_link')->nullable();
             $table->timestamps();
