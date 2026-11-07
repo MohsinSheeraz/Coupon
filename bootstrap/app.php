@@ -12,7 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Public tracking calls sent by site.js (no forms, nothing to protect).
+        $middleware->preventRequestForgery(except: [
+            'api/presence',
+            'api/coupons/increment',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
