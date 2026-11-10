@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next/types"
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google"
 import "./globals.css"
+import MetaPixel from "@/components/MetaPixel"
 import Navbar from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import Footer from "@/components/footer"
@@ -52,6 +53,7 @@ export default function RootLayout({
               <PublicPresenceTracker />
             </PublicChrome>
             <main className="flex-1">
+              <MetaPixel />
               {children}
               <Toaster />
             </main>
