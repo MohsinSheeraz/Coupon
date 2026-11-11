@@ -13,7 +13,12 @@ export async function POST(req: NextRequest) {
     const { eventName, eventId, eventSourceUrl, customData, testEventCode } = body;
 
     // Extract client IP and User Agent
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '';
+    // const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '';
+    const clientIp =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    '';
+
     const userAgent = req.headers.get('user-agent') || '';
     const fbp = req.cookies.get('_fbp')?.value;
     const fbc = req.cookies.get('_fbc')?.value;
