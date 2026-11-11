@@ -8,6 +8,7 @@ import { BadgeCheck, Clock, ExternalLink, Percent, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getExpiry, getOfferImage, maskCode } from "@/lib/offer"
+import { trackMetaEvent } from "@/lib/metaTrack"
 import { CouponModal } from "./coupon-modal"
 
 const EXPIRY_TONES = {
@@ -21,7 +22,19 @@ export function CouponCard({ coupon }: { coupon: any }) {
     const isCode = coupon.type === "code"
     const image = getOfferImage(coupon)
     const expiry = getExpiry(coupon.expiryDate)
-    const open = () => setIsModalOpen(true)
+
+    const trackOfferLead = () => {
+        trackMetaEvent("Lead", {
+            content_name: coupon.title,
+            content_category: coupon.store?.name || (isCode ? "Code" : "Deal"),
+            content_type: isCode ? "coupon_code" : "deal",
+        })
+    }
+
+    const open = () => {
+        trackOfferLead()
+        setIsModalOpen(true)
+    }
 
     return (
         <>
@@ -104,7 +117,10 @@ export function CouponCard({ coupon }: { coupon: any }) {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={`Visit ${coupon.store?.name ?? "store"}`}
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        trackOfferLead()
+                                    }}
                                     className="hidden size-10 shrink-0 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:border-grape hover:text-grape sm:grid"
                                 >
                                     <ExternalLink className="size-4" />

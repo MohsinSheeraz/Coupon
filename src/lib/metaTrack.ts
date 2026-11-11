@@ -4,31 +4,30 @@ declare global {
   }
 }
 
-export async function trackMetaEvent(
+export function trackMetaEvent(
   eventName: string,
-  customData?: Record<string, unknown>,
-  testEventCode?: string
+  customData?: Record<string, unknown>
 ) {
+  if (typeof window === "undefined") return;
+
   const eventId = crypto.randomUUID();
   const eventSourceUrl = window.location.href;
 
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', eventName, customData || {}, { eventID: eventId });
+  // 1. Fire Browser Pixel with matching eventID
+  if (window.fbq) {
+    window.fbq("track", eventName, customData || {}, { eventID: eventId });
   }
 
-  try {
-    await fetch('/api/meta-events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        eventName,
-        eventId,
-        eventSourceUrl,
-        customData,
-        testEventCode,
-      }),
-    });
-  } catch (err) {
-    console.error('Meta server tracking error:', err);
-  }
+  // 2. Fire Server CAPI via your /api/meta-events route
+  fetch("/api/meta-events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    keepalive: true,
+    body: JSON.stringify({
+      eventName,
+      eventId,
+      eventSourceUrl,
+      customData,
+    }),
+  }).catch((err) => console.error("Meta CAPI tracking error:", err));
 }
