@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 
@@ -11,25 +10,27 @@ declare global {
   }
 }
 
-const PIXEL_ID = "1580985547376513";
+const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1580985547376513";
 
 export default function MetaPixel() {
   const pathname = usePathname();
-  const [pixelReady, setPixelReady] = useState(false);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
-    if (pixelReady && window.fbq) {
+    // Skip the very first render because the inline <Script> below already fires the initial PageView
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.fbq) {
       window.fbq("track", "PageView");
     }
-  }, [pathname, pixelReady]);
+  }, [pathname]);
 
   return (
     <>
-      <Script
-        id="meta-pixel"
-        strategy="afterInteractive"
-        onReady={() => setPixelReady(true)}
-      >
+      <Script id="meta-pixel" strategy="afterInteractive">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){
@@ -46,9 +47,10 @@ export default function MetaPixel() {
           s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)
           }(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
+          'https://facebook.net');
 
           fbq('init', '${PIXEL_ID}');
+          fbq('track', 'PageView');
         `}
       </Script>
 
@@ -57,7 +59,7 @@ export default function MetaPixel() {
           height="1"
           width="1"
           style={{ display: "none" }}
-          src={`https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1`}
+          src={`https://facebook.com{PIXEL_ID}&ev=PageView&noscript=1`}
           alt=""
         />
       </noscript>
