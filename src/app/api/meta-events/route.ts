@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // const metaUrl = `https://facebook.com{PIXEL_ID}/events?access_token=${encodeURIComponent(ACCESS_TOKEN)}`;
-    const host = ['https:/', 'graph.facebook.com', 'v21.0', META_PIXEL_ID, 'events'].join('/');
+    const host = ['https:/', 'graph.facebook.com', 'v21.0', process.env.META_PIXEL_ID, 'events'].join('/');
     const metaUrl = `${host}?access_token=${encodeURIComponent(META_ACCESS_TOKEN)}`;
 
 
