@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1580985547376513";
+const PIXEL_ID = process.env.META_PIXEL_ID || "1580985547376513";
 
 function sendServerPageView(eventId: string) {
   fetch("/api/meta-events", {
@@ -31,7 +31,6 @@ export default function MetaPixel() {
   useEffect(() => {
     const eventId = crypto.randomUUID();
 
-    // First load: the inline <Script> initializes fbq; fire both browser & server with the same eventId
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
       if (typeof window !== "undefined" && window.fbq) {
@@ -41,7 +40,6 @@ export default function MetaPixel() {
       return;
     }
 
-    // Subsequent Next.js route changes
     if (typeof window !== "undefined" && window.fbq) {
       window.fbq("track", "PageView", {}, { eventID: eventId });
     }

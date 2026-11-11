@@ -1,7 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
+import https from 'node:https';
 
-const PIXEL_ID = process.env.META_PIXEL_ID || '1580985547376513';
-const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
+const PIXEL_ID = (process.env.META_PIXEL_ID || '1580985547376513').trim();
+const ACCESS_TOKEN = (process.env.META_ACCESS_TOKEN || '').trim();
+
+function postToMeta(url: string, body: string): Promise<{ status: number; data: unknown }> {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        family: 4, // Force IPv4 so Vercel never stalls on IPv6
+      },
+      (res) => {
+        let raw = '';
+        res.on('data', (chunk) => (raw += chunk));
+        res.on('end', () => {
+          try {
+            resolve({ status: res.statusCode || 500, data: JSON.parse(raw) });
+          } catch {
+            resolve({ status: res.statusCode || 500, data: raw });
+          }
+        });
+      }
+    );
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 export async function POST(req: NextRequest) {
   if (!ACCESS_TOKEN) {
@@ -15,7 +47,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { eventName, eventId, eventSourceUrl, customData, testEventCode } = body;
 
-    // Grab the first IP string from x-forwarded-for safely
     const forwardedFor = req.headers.get('x-forwarded-for');
     const clientIp =
       (forwardedFor ? forwardedFor.split(',')[0].trim() : '') ||
@@ -49,22 +80,14 @@ export async function POST(req: NextRequest) {
       payload.test_event_code = testEventCode;
     }
 
-    const response = await fetch(
-      `https://facebook.com{PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
+    const metaUrl = `https://facebook.com{PIXEL_ID}/events?access_token=${encodeURIComponent(ACCESS_TOKEN)}`;
+    const { status, data } = await postToMeta(metaUrl, JSON.stringify(payload));
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json({ error: result }, { status: response.status });
+    if (status < 200 || status >= 300) {
+      return NextResponse.json({ error: data }, { status });
     }
 
-    return NextResponse.json({ success: true, result });
+    return NextResponse.json({ success: true, result: data });
   } catch (error) {
     return NextResponse.json(
       {
