@@ -1,7 +1,4 @@
-// File: src/components/coupon-card.tsx
-
 "use client"
-
 import { useState } from "react"
 import Link from "next/link"
 import { BadgeCheck, Clock, ExternalLink, Percent, Tag } from "lucide-react"
