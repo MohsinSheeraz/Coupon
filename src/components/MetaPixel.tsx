@@ -12,55 +12,88 @@ declare global {
   }
 }
 
-/* ---------- Optional helper: use anywhere if you ever need it ---------- */
-export const trackEvent = (name: string, data?: Record<string, unknown>) => {
+const track = (name: string, data?: Record<string, unknown>) =>
   window.fbq?.("track", name, data);
-};
 
-/* ---------- Route-based events: edit these to match your URLs ---------- */
-const ROUTE_EVENTS: Record<
-  string,
-  { name: string; data?: Record<string, unknown> }
-> = {
-  "/thank-you": { name: "Lead" },
-  "/checkout": { name: "InitiateCheckout" },
-  "/order-success": { name: "Purchase", data: { currency: "USD" } },
-};
-
-/* ---------- PageView + route-based events on navigation ---------- */
+/* ---------- Page views + content views on navigation ---------- */
 function RouteTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // The base code already fires PageView on the initial load,
-    // so skip it on the first render to avoid a duplicate.
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-    } else {
-      window.fbq?.("track", "PageView");
-    }
+    // Base code already fires PageView on the first load
+    if (isFirstRender.current) isFirstRender.current = false;
+    else track("PageView");
 
-    const event = ROUTE_EVENTS[pathname];
-    if (event) window.fbq?.("track", event.name, event.data);
+    const category = searchParams.get("category");
+
+    if (pathname.startsWith("/stores/")) {
+      track("ViewContent", {
+        content_type: "store",
+        content_name: decodeURIComponent(pathname.split("/")[2] ?? ""),
+      });
+    } else if (pathname === "/stores" && category) {
+      track("ViewContent", { content_type: "category", content_name: category });
+    } else if (pathname === "/coupons" || pathname === "/deals") {
+      track("ViewContent", { content_type: "list", content_name: pathname.slice(1) });
+    }
   }, [pathname, searchParams]);
 
   return null;
 }
 
-/* ---------- Click-based events: add data-fb-event="EventName" to any element ---------- */
-function ClickTracker() {
+/* ---------- Global click + search tracking (no per-button code) ---------- */
+const CTA_TEXT = /get\s*(code|deal)|shop\s*now|visit\s*(store|site)/i;
+
+function InteractionTracker() {
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      const el = (e.target as HTMLElement).closest<HTMLElement>(
-        "[data-fb-event]"
-      );
-      if (!el?.dataset.fbEvent) return;
-      window.fbq?.("track", el.dataset.fbEvent);
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest<HTMLAnchorElement>("a[href]");
+      const button = target.closest<HTMLElement>("button,[role=button]");
+      const href = link?.getAttribute("href")?.trim() ?? "";
+
+      // mailto / tel
+      if (href.startsWith("mailto:") || href.startsWith("tel:")) {
+        track("Contact", { method: href.split(":")[0] });
+        return;
+      }
+
+      // Affiliate / outbound click, or a Get code / Get deal button
+      let isExternal = false;
+      let host = "";
+      try {
+        const url = new URL(href, window.location.origin);
+        host = url.hostname;
+        isExternal = !!href && url.hostname !== window.location.hostname;
+      } catch {}
+
+      const label = (button?.innerText || link?.innerText || "").trim();
+      if (isExternal || (button && CTA_TEXT.test(label))) {
+        const card = target.closest("article,li,[class*=card]") as HTMLElement | null;
+        track("Lead", {
+          content_name: (card?.innerText || label).split("\n").filter(Boolean).slice(0, 2).join(" | ").slice(0, 100),
+          content_category: window.location.pathname.split("/")[1] || "home",
+          destination: host,
+          cta: label.replace(/\s+/g, " ").slice(0, 30),
+        });
+      }
     };
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+
+    const onSubmit = (e: SubmitEvent) => {
+      const input = (e.target as HTMLFormElement).querySelector<HTMLInputElement>(
+        "input[type=search]"
+      );
+      if (input?.value) track("Search", { search_string: input.value });
+    };
+
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("submit", onSubmit, true);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("submit", onSubmit, true);
+    };
   }, []);
 
   return null;
@@ -99,7 +132,7 @@ export default function MetaPixel() {
       <Suspense fallback={null}>
         <RouteTracker />
       </Suspense>
-      <ClickTracker />
+      <InteractionTracker />
     </>
   );
 }
