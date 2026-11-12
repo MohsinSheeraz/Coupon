@@ -43,11 +43,45 @@ function RouteTracker() {
   return null;
 }
 
-// /* ---------- Global click + search tracking (no per-button code) ---------- */
-// const CTA_TEXT = /get\s*(code|deal)|shop\s*now|visit\s*(store|site)/i;
+
 
 function InteractionTracker() {
   useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const link = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
+      const href = link?.getAttribute("href")?.trim() ?? "";
+
+      if (href.startsWith("mailto:") || href.startsWith("tel:")) {
+        track("Contact", { method: href.split(":")[0] });
+      }
+    };
+
+    const onClick = (e: MouseEvent) => {
+  const link = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
+  const href = link?.getAttribute("href")?.trim() ?? "";
+
+  if (href.startsWith("mailto:") || href.startsWith("tel:")) {
+    track("Contact", { method: href.split(":")[0] });
+  }
+};
+
+    const onSubmit = (e: SubmitEvent) => {
+      const input = (e.target as HTMLFormElement).querySelector<HTMLInputElement>(
+        "input[type=search]"
+      );
+      if (input?.value) track("Search", { search_string: input.value });
+    };
+
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("submit", onSubmit, true);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("submit", onSubmit, true);
+    };
+  }, []);
+
+  return null;
+}
     // const onClick = (e: MouseEvent) => {
     //   const target = e.target as HTMLElement;
     //   const link = target.closest<HTMLAnchorElement>("a[href]");
