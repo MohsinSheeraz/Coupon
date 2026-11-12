@@ -43,43 +43,43 @@ function RouteTracker() {
   return null;
 }
 
-/* ---------- Global click + search tracking (no per-button code) ---------- */
-const CTA_TEXT = /get\s*(code|deal)|shop\s*now|visit\s*(store|site)/i;
+// /* ---------- Global click + search tracking (no per-button code) ---------- */
+// const CTA_TEXT = /get\s*(code|deal)|shop\s*now|visit\s*(store|site)/i;
 
 function InteractionTracker() {
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const link = target.closest<HTMLAnchorElement>("a[href]");
-      const button = target.closest<HTMLElement>("button,[role=button]");
-      const href = link?.getAttribute("href")?.trim() ?? "";
+    // const onClick = (e: MouseEvent) => {
+    //   const target = e.target as HTMLElement;
+    //   const link = target.closest<HTMLAnchorElement>("a[href]");
+    //   const button = target.closest<HTMLElement>("button,[role=button]");
+    //   const href = link?.getAttribute("href")?.trim() ?? "";
 
-      // mailto / tel
-      if (href.startsWith("mailto:") || href.startsWith("tel:")) {
-        track("Contact", { method: href.split(":")[0] });
-        return;
-      }
+    //   // mailto / tel
+    //   if (href.startsWith("mailto:") || href.startsWith("tel:")) {
+    //     track("Contact", { method: href.split(":")[0] });
+    //     return;
+    //   }
 
-      // Affiliate / outbound click, or a Get code / Get deal button
-      let isExternal = false;
-      let host = "";
-      try {
-        const url = new URL(href, window.location.origin);
-        host = url.hostname;
-        isExternal = !!href && url.hostname !== window.location.hostname;
-      } catch {}
+    //   // Affiliate / outbound click, or a Get code / Get deal button
+    //   let isExternal = false;
+    //   let host = "";
+    //   try {
+    //     const url = new URL(href, window.location.origin);
+    //     host = url.hostname;
+    //     isExternal = !!href && url.hostname !== window.location.hostname;
+    //   } catch {}
 
-      const label = (button?.innerText || link?.innerText || "").trim();
-      if (isExternal || (button && CTA_TEXT.test(label))) {
-        const card = target.closest("article,li,[class*=card]") as HTMLElement | null;
-        track("Lead", {
-          content_name: (card?.innerText || label).split("\n").filter(Boolean).slice(0, 2).join(" | ").slice(0, 100),
-          content_category: window.location.pathname.split("/")[1] || "home",
-          destination: host,
-          cta: label.replace(/\s+/g, " ").slice(0, 30),
-        });
-      }
-    };
+    //   const label = (button?.innerText || link?.innerText || "").trim();
+    //   if (isExternal || (button && CTA_TEXT.test(label))) {
+    //     const card = target.closest("article,li,[class*=card]") as HTMLElement | null;
+    //     track("Lead", {
+    //       content_name: (card?.innerText || label).split("\n").filter(Boolean).slice(0, 2).join(" | ").slice(0, 100),
+    //       content_category: window.location.pathname.split("/")[1] || "home",
+    //       destination: host,
+    //       cta: label.replace(/\s+/g, " ").slice(0, 30),
+    //     });
+    //   }
+    // };
 
     const onSubmit = (e: SubmitEvent) => {
       const input = (e.target as HTMLFormElement).querySelector<HTMLInputElement>(
