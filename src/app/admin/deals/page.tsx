@@ -7,9 +7,10 @@ import { Plus, Edit, ExternalLink } from "lucide-react"
 import { DeleteItemButton } from "@/components/DeleteButton"
 import { ExpandableText } from "@/components/admin/expandable-text"
 
-export const revalidate = 30   // seconds
-export default async function AdminDealsPage() {
-    const deals = await getAllDeals()
+export const dynamic = "force-dynamic"
+export default async function AdminDealsPage({searchParams}: { searchParams: Promise<{ page?: string }> }) {
+    const page = Math.max(1, Number((await searchParams).page) || 1)
+    const { deals, pages } = await getDealsPage(page)
 
     return (
         <div className="animate-fadeIn">
@@ -86,6 +87,19 @@ export default async function AdminDealsPage() {
                     </TableBody>
                 </Table>
             </div>
+            <div className="flex justify-center items-center gap-4 mt-6">
+    {page > 1 && (
+        <Link href={`/admin/deals?page=${page - 1}`}>
+            <Button variant="outline" size="sm">Previous</Button>
+        </Link>
+    )}
+    <span className="text-sm text-gray-600">Page {page} of {pages || 1}</span>
+    {page < pages && (
+        <Link href={`/admin/deals?page=${page + 1}`}>
+            <Button variant="outline" size="sm">Next</Button>
+        </Link>
+    )}
+</div>
         </div>
     )
 }

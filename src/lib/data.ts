@@ -778,3 +778,21 @@ export async function updateSettings(newSettings: Partial<SiteSettings>): Promis
 
     return result.modifiedCount > 0
 }
+
+export async function getDealsPage(page = 1, pageSize = 25) {
+    const { coupons } = await getCollections()
+    const filter = { type: "deal" as const }
+    const [docs, total] = await Promise.all([
+        coupons
+            .find(filter, {
+                projection: { title: 1, storeId: 1, affiliateLink: 1, expiryDate: 1, usedCount: 1, createdAt: 1 },
+            })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * pageSize)
+            .limit(pageSize)
+            .toArray(),
+        coupons.countDocuments(filter),
+    ])
+    const populated = await populateOffersWithStores(docs as Coupon[])
+    return { deals: populated.map(transformCoupon), total, pages: Math.ceil(total / pageSize) }
+}
