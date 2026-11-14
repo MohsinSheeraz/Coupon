@@ -1,6 +1,7 @@
 // src/app/coupons/page.tsx
 import Link from "next/link"
 import { getAllCoupons } from "@/lib/data"
+import { getOffersByType } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
 import MobilePageSearch from "@/components/mobile-page-search"
 import type { Coupon } from "@/lib/models"
@@ -24,8 +25,7 @@ export default async function CouponsPage({
     const view = params.view ?? "default"
 
     // fetch & filter
-    const all: Coupon[] = await getAllCoupons()
-    const coupons = all.filter((c) => c.type === "code")
+const coupons: Coupon[] = await getOffersByType("code")
 
     // decide pageSize & pagination
     const pageSize = view === "all" ? coupons.length : PAGE_SIZE

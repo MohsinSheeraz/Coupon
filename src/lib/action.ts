@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { cookies } from "next/headers"
 import { cleanCategories } from "./categories"
 import { COOKIE_NAME, isValidToken } from "./auth"
@@ -126,6 +126,7 @@ export async function createCoupon(
             usedCount: 0,
             verifiedTime: "Today",
         })
+        revalidateTag("offers")
         revalidatePath("/admin/coupons")
         revalidatePath("/coupons")
         revalidatePath("/stores")
@@ -140,6 +141,7 @@ export async function createCoupon(
 export async function updateCoupon(id: string, coupon: Partial<Coupon>) {
     try {
         await dbUpdateCoupon(id, coupon)
+        revalidateTag("offers")
         revalidatePath("/admin/coupons")
         revalidatePath("/admin/deals") // Add this line to revalidate deals too
         revalidatePath("/coupons")
@@ -156,6 +158,7 @@ export async function updateCoupon(id: string, coupon: Partial<Coupon>) {
 export async function deleteCoupon(id: string) {
     try {
         await dbDeleteCoupon(id)
+        revalidateTag("offers")
         revalidatePath("/admin/coupons")
         revalidatePath("/coupons")
         revalidatePath("/stores")
@@ -193,6 +196,7 @@ export async function createDeal(deal: {
             expiryDate: deal.expiryDate,
             ...(deal.logo ? { logo: deal.logo } : {}),
         })
+        revalidateTag("offers")
         revalidatePath("/admin/deals")
         revalidatePath("/deals")
         revalidatePath("/stores")
@@ -207,6 +211,7 @@ export async function createDeal(deal: {
 export async function deleteDeal(id: string) {
     try {
         await dbDeleteCoupon(id) // Deals are stored in the coupons collection
+        revalidateTag("offers")
         revalidatePath("/admin/deals")
         revalidatePath("/deals")
         revalidatePath("/stores")

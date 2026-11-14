@@ -1,4 +1,5 @@
 "use server"
+import { unstable_cache } from "next/cache"
 import clientPromise from "./mongodb"
 import { isToday, isYesterday, format } from 'date-fns'
 import { ObjectId } from "mongodb"
@@ -461,11 +462,22 @@ export async function getAllCoupons(): Promise<Coupon[]> {
     return populatedCoupons.map(transformCoupon)
 }
 
-export async function getOffersByType(type: "code" | "deal"): Promise<Coupon[]> {
+const fetchOffersByType = async (type: "code" | "deal"): Promise<Coupon[]> => {
     const { coupons } = await getCollections()
     const offers = await coupons.find({ type }).sort({ createdAt: -1 }).toArray()
     const populatedOffers = await populateOffersWithStores(offers)
     return populatedOffers.map(transformCoupon)
+}
+
+// Public listing pages are hit hard by crawlers; cache the DB result briefly so
+// they don't each run a fresh query (and connection) against MongoDB.
+const cachedOffersByType = unstable_cache(fetchOffersByType, ["offers-by-type"], {
+    revalidate: 60,
+    tags: ["offers"],
+})
+
+export async function getOffersByType(type: "code" | "deal"): Promise<Coupon[]> {
+    return cachedOffersByType(type)
 }
 
 export async function getAdminDashboardStats() {
