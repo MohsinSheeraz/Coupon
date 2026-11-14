@@ -1,7 +1,6 @@
 // src/app/coupons/page.tsx
 import Link from "next/link"
 import { getOffersPage } from "@/lib/data"
-import { getOffersByType } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
 import MobilePageSearch from "@/components/mobile-page-search"
 import type { Coupon } from "@/lib/models"
@@ -27,7 +26,7 @@ export default async function CouponsPage({
     // fetch only the coupons for this page
     const showAll = view === "all"
     const { offers, total } = await getOffersPage("code", currentPage, showAll ? 0 : PAGE_SIZE)
-    const pagedCoupons = offers as Coupon[]
+    const paged = offers as Coupon[]
 
     const totalPages = showAll ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE))
     const prevPage = Math.max(currentPage - 1, 1)
