@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getAllDeals } from "@/lib/data"
+import { getDealsPage } from "@/lib/data"
 import { deleteDeal } from "@/lib/action"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
