@@ -462,22 +462,28 @@ export async function getAllCoupons(): Promise<Coupon[]> {
     return populatedCoupons.map(transformCoupon)
 }
 
-const fetchOffersByType = async (type: "code" | "deal"): Promise<Coupon[]> => {
+export async function getOffersByType(type: "code" | "deal"): Promise<Coupon[]> {
     const { coupons } = await getCollections()
     const offers = await coupons.find({ type }).sort({ createdAt: -1 }).toArray()
     const populatedOffers = await populateOffersWithStores(offers)
     return populatedOffers.map(transformCoupon)
 }
 
-// Public listing pages are hit hard by crawlers; cache the DB result briefly so
-// they don't each run a fresh query (and connection) against MongoDB.
-const cachedOffersByType = unstable_cache(fetchOffersByType, ["offers-by-type"], {
-    revalidate: 60,
-    tags: ["offers"],
-})
-
-export async function getOffersByType(type: "code" | "deal"): Promise<Coupon[]> {
-    return cachedOffersByType(type)
+// Public pages: fetch only the page being shown. pageSize 0 = no limit ("show all").
+export async function getOffersPage(type: "code" | "deal", page = 1, pageSize = 9) {
+    const { coupons } = await getCollections()
+    const filter = { type }
+    const [docs, total] = await Promise.all([
+        coupons
+            .find(filter)
+            .sort({ createdAt: -1 })
+            .skip(pageSize ? (page - 1) * pageSize : 0)
+            .limit(pageSize)
+            .toArray(),
+        coupons.countDocuments(filter),
+    ])
+    const populated = await populateOffersWithStores(docs as Coupon[])
+    return { offers: populated.map(transformCoupon), total }
 }
 
 export async function getAdminDashboardStats() {

@@ -1,6 +1,6 @@
 // src/app/coupons/page.tsx
 import Link from "next/link"
-import { getAllCoupons } from "@/lib/data"
+import { getOffersPage } from "@/lib/data"
 import { getOffersByType } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
 import MobilePageSearch from "@/components/mobile-page-search"
@@ -24,16 +24,12 @@ export default async function CouponsPage({
     const currentPage = parseInt(params.page ?? "1", 10) || 1
     const view = params.view ?? "default"
 
-    // fetch & filter
-const coupons: Coupon[] = await getOffersByType("code")
+    // fetch only the coupons for this page
+    const showAll = view === "all"
+    const { offers, total } = await getOffersPage("code", currentPage, showAll ? 0 : PAGE_SIZE)
+    const pagedCoupons = offers as Coupon[]
 
-    // decide pageSize & pagination
-    const pageSize = view === "all" ? coupons.length : PAGE_SIZE
-    const totalPages =
-        view === "all" ? 1 : Math.ceil(coupons.length / PAGE_SIZE)
-    const start = (currentPage - 1) * PAGE_SIZE
-    const paged = coupons.slice(start, start + pageSize)
-
+    const totalPages = showAll ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE))
     const prevPage = Math.max(currentPage - 1, 1)
     const nextPage = Math.min(currentPage + 1, totalPages)
 

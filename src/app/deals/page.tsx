@@ -1,6 +1,6 @@
 // src/app/deals/page.tsx
 import Link from "next/link"
-import { getAllDeals } from "@/lib/data"
+import { getOffersPage } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
 import MobilePageSearch from "@/components/mobile-page-search"
 import type { Deal } from "@/lib/models"
@@ -23,16 +23,12 @@ export default async function DealsPage({
     const currentPage = parseInt(params.page ?? "1", 10) || 1
     const view = params.view ?? "default"
 
-    // ▶ fetch deals
-    const allDeals: Deal[] = await getAllDeals()
+    // ▶ fetch only the deals for this page
+    const showAll = view === "all"
+    const { offers, total } = await getOffersPage("deal", currentPage, showAll ? 0 : PAGE_SIZE)
+    const pagedDeals = offers as Deal[]
 
-    // ▶ pagination math
-    const pageSize = view === "all" ? allDeals.length : PAGE_SIZE
-    const totalPages =
-        view === "all" ? 1 : Math.ceil(allDeals.length / PAGE_SIZE)
-    const start = (currentPage - 1) * PAGE_SIZE
-    const pagedDeals = allDeals.slice(start, start + pageSize)
-
+    const totalPages = showAll ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE))
     const prevPage = Math.max(currentPage - 1, 1)
     const nextPage = Math.min(currentPage + 1, totalPages)
 
