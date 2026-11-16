@@ -3,6 +3,8 @@ import Link from "next/link"
 import { getOffersPage } from "@/lib/data"
 import { CouponCard } from "@/components/coupon-card"
 import MobilePageSearch from "@/components/mobile-page-search"
+import { ListingPagination } from "@/components/listing-pagination"
+import { ListingIntro } from "@/components/listing-intro"
 import type { Coupon } from "@/lib/models"
 
 interface SearchParams {
@@ -17,7 +19,7 @@ export default async function CouponsPage({
     searchParams: Promise<SearchParams>
 }) {
     const params = await searchParams
-    const PAGE_SIZE = 9
+    const PAGE_SIZE = 16
 
     // parse page + view
     const currentPage = parseInt(params.page ?? "1", 10) || 1
@@ -29,59 +31,24 @@ export default async function CouponsPage({
     const paged = offers as Coupon[]
 
     const totalPages = showAll ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE))
-    const prevPage = Math.max(currentPage - 1, 1)
-    const nextPage = Math.min(currentPage + 1, totalPages)
 
     // decide grid columns
-    let gridColsClass = "grid-cols-2 md:grid-cols-2 lg:grid-cols-3"
+    let gridColsClass = "grid-cols-2 md:grid-cols-2 lg:grid-cols-4"
     if (view === "one") gridColsClass = "grid-cols-1"
     else if (view === "two") gridColsClass = "grid-cols-2"
 
     return (
         <div className="listing-page container mx-auto px-4 py-12">
-            <div className="listing-intro text-center mb-6">
-                <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-ink mb-2">All Coupons</h1>
-                <p className="text-gray-600">
-                    Browse our collection of verified coupons.
-                </p>
-            </div>
+            <ListingIntro kind="coupons" />
             <div className="listing-controls">
                 <div className="listing-pagination-row">
                     {view !== "all" && totalPages > 1 && (
-                        <div className="flex items-center space-x-2">
-                        <Link
-                            href={`?view=${view}&page=${prevPage}`}
-                            className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage <= 1
-                                ? "cursor-not-allowed text-gray-400 border-gray-300"
-                                : "text-gray-700 hover:bg-white"
-                                }`}
-                        >
-                            Prev
-                        </Link>
-
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                            <Link
-                                key={p}
-                                href={`?view=${view}&page=${p}`}
-                                className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${p === currentPage
-                                    ? "bg-ink text-white border-ink"
-                                    : "text-gray-700 hover:bg-white"
-                                    }`}
-                            >
-                                {p}
-                            </Link>
-                        ))}
-
-                        <Link
-                            href={`?view=${view}&page=${nextPage}`}
-                            className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage >= totalPages
-                                ? "cursor-not-allowed text-gray-400 border-gray-300"
-                                : "text-gray-700 hover:bg-white"
-                                }`}
-                        >
-                            Next
-                        </Link>
-                        </div>
+                        <ListingPagination
+                            pathname="/coupons"
+                            view={view}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                        />
                     )}
                     <Link
                         href="?view=all&page=1"

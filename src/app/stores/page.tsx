@@ -5,6 +5,8 @@ import { getAllStores } from "@/lib/data"
 import type { Store } from "@/lib/models"
 import MobilePageSearch from "@/components/mobile-page-search"
 import { StoreCard } from "@/components/store-card"
+import { ListingIntro } from "@/components/listing-intro"
+import { ListingPagination } from "@/components/listing-pagination"
 
 interface SearchParams {
     page?: string
@@ -20,7 +22,7 @@ export default async function StoresPage({
     searchParams: Promise<SearchParams>
 }) {
     const params = await searchParams
-    const PAGE_SIZE = 15
+    const PAGE_SIZE = 20
 
     // ▶ parse pagination + view
     const currentPage = parseInt(params.page ?? "1", 10) || 1
@@ -29,21 +31,18 @@ export default async function StoresPage({
 
     // ▶ fetch stores
     const stores: Store[] = await getAllStores()
-const allStores =
-    category && categoryKey(category)
-        ? stores.filter((s) => (s.categories ?? []).some((c) => categoriesMatch(c, category)))
-        : stores
+    const allStores =
+        category && categoryKey(category)
+            ? stores.filter((s) => (s.categories ?? []).some((c) => categoriesMatch(c, category)))
+            : stores
     const categoryQuery = category ? `&category=${encodeURIComponent(category)}` : ""
 
     // ▶ pagination math
     const pageSize = view === "all" ? allStores.length : PAGE_SIZE
     const totalPages =
-        view === "all" ? 1 : Math.ceil(allStores.length / PAGE_SIZE)
+        view === "all" ? 1 : Math.max(1, Math.ceil(allStores.length / PAGE_SIZE))
     const start = (currentPage - 1) * PAGE_SIZE
     const pagedStores = allStores.slice(start, start + pageSize)
-
-    const prevPage = Math.max(currentPage - 1, 1)
-    const nextPage = Math.min(currentPage + 1, totalPages)
 
     // ▶ grid-columns based on view
     let gridColsClass = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
@@ -52,56 +51,25 @@ const allStores =
 
     return (
         <div className="listing-page container mx-auto px-4 py-12">
-            {/* Header */}
-            <div className="listing-intro text-center mb-6">
-                <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-ink mb-2">
-                    {category ? `${category} Stores` : "All Stores"}
-                </h1>
-                <p className="text-gray-600">
-                    {category
-                        ? `Browse stores in ${category}.`
-                        : "Browse our collection of stores and find the best coupons and deals"}
-                </p>
-            </div>
+            <ListingIntro
+                kind="stores"
+                title={category ? `${category} Stores` : "All Stores"}
+                description={category
+                    ? `Browse stores in ${category}.`
+                    : "Browse our collection of stores and find the best coupons and deals"}
+            />
 
             {/* Controls Bar */}
             <div className="listing-controls">
                 <div className="listing-pagination-row">
                     {view !== "all" && totalPages > 1 && (
-                        <div className="flex items-center space-x-2">
-                        <Link
-                            href={`?view=${view}&page=${prevPage}${categoryQuery}`}
-                            className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage <= 1
-                                ? "cursor-not-allowed text-gray-400 border-gray-300"
-                                : "text-gray-700 hover:bg-white"
-                                }`}
-                        >
-                            Prev
-                        </Link>
-
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                            <Link
-                                key={p}
-                                href={`?view=${view}&page=${p}${categoryQuery}`}
-                                className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${p === currentPage
-                                    ? "bg-ink text-white border-ink"
-                                    : "text-gray-700 hover:bg-white"
-                                    }`}
-                            >
-                                {p}
-                            </Link>
-                        ))}
-
-                        <Link
-                            href={`?view=${view}&page=${nextPage}${categoryQuery}`}
-                            className={`px-3.5 py-1.5 border rounded-full text-sm font-medium transition-colors ${currentPage >= totalPages
-                                ? "cursor-not-allowed text-gray-400 border-gray-300"
-                                : "text-gray-700 hover:bg-white"
-                                }`}
-                        >
-                            Next
-                        </Link>
-                        </div>
+                        <ListingPagination
+                            pathname="/stores"
+                            view={view}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            category={category}
+                        />
                     )}
                 </div>
 

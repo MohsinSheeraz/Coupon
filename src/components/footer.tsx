@@ -70,6 +70,11 @@ export default async function Footer() {
                                         Stores
                                     </Link>
                                 </li>
+                                <li>
+                                    <Link href="/contact" className="transition-colors hover:text-citrus">
+                                        Contact
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
                         <div>
@@ -90,7 +95,7 @@ export default async function Footer() {
                         <div>
                             <h3 className="mb-4 font-display text-base font-semibold text-white">Contact</h3>
                             <ul className="space-y-2.5">
-                            <li><a href="mailto:support@dealzycoup.com">support@dealzycoup.com</a></li>
+                            <li><a href="mailto:info@dealzycoup.com">info@dealzycoup.com</a></li>
                             <li><a href="tel:+923121069685">+92 312 1069685</a></li>
                             </ul>
                         </div>

@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Contact email (Hostinger SMTP)
+
+Copy `.env.example` to `.env.local` and set `SMTP_PASSWORD` to the mailbox password for `info@dealzycoup.com`. Keep `.env.local` private and never prefix SMTP variables with `NEXT_PUBLIC_`.
+
+The contact form sends messages through `smtp.hostinger.com` on port `465` with SSL/TLS. If your mailbox is configured for port `587`, set `SMTP_PORT=587` and `SMTP_SECURE=false` to use STARTTLS. Configure the same variables in your deployment provider before publishing the contact form.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

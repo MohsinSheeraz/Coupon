@@ -44,7 +44,7 @@ export default async function StoreDetailPage({
             </div>
 
             {/* ── coupons / deals tabs ───────────────── */}
-            <Tabs defaultValue="coupons" className="space-y-6">
+            <Tabs defaultValue="deals" className="space-y-6">
                 <TabsList className="grid h-auto grid-cols-2 rounded-full bg-mist p-1">
                     <TabsTrigger value="coupons" className="rounded-full py-2 text-base font-medium cursor-pointer data-[state=active]:bg-white data-[state=active]:text-grape">
                         Coupons

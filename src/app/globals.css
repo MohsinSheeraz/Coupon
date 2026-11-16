@@ -426,12 +426,31 @@ body { background: #f6f5ef; }
 
 /* Shared browse pages */
 .listing-page { min-height: 65vh; padding-top: 55px; padding-bottom: 100px; }
-.listing-intro { position: relative; margin-bottom: 32px; padding: 48px clamp(24px,5vw,70px); overflow: hidden; border: 1px solid #dce2d0; border-radius: 20px; background: radial-gradient(circle at 90% 15%, #e1edca 0, transparent 37%), #edf0e5; }
-.listing-intro h1 { font-size: clamp(2.4rem,4vw,4rem); line-height: 1.07; letter-spacing: -.06em; }
-.listing-intro p { margin-top: 10px; color: #65715e; font-size: 1rem; }
+.listing-intro { position: relative; display: flex; min-height: 250px; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 32px; padding: 38px clamp(24px,5vw,70px); overflow: hidden; border: 1px solid #dce2d0; border-radius: 24px; background: radial-gradient(ellipse at 86% 20%, #dcebc8 0, transparent 34%), radial-gradient(ellipse at 18% 110%, #f8f9ef 0, transparent 50%), #edf0e5; text-align: left; }
+.listing-intro-copy { position: relative; z-index: 1; max-width: 760px; flex: 1 1 auto; animation: listing-copy-enter .7s cubic-bezier(.2,.8,.2,1) both; }
+.listing-intro .listing-intro-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 7px 12px; border: 1px solid rgba(104,126,78,.2); border-radius: 999px; background: rgba(255,255,255,.62); color: #5b7048; font-size: .72rem; font-weight: 750; letter-spacing: .09em; line-height: 1; text-transform: uppercase; }
+.listing-intro h1 { margin: 0; font-size: clamp(3rem,5.3vw,5rem); font-weight: 750; line-height: .98; letter-spacing: -.065em; }
+.listing-intro h1 span { color: #70864f; }
+.listing-intro .listing-intro-description { max-width: 44rem; margin: 16px 0 0; color: #65715e; font-size: clamp(1rem,1.35vw,1.16rem); line-height: 1.65; }
+.listing-hero-art { position: relative; z-index: 1; width: 220px; height: 176px; flex: 0 0 220px; margin-right: 12px; animation: listing-art-enter .8s .12s cubic-bezier(.2,.8,.2,1) both; }
+.listing-hero-glow { position: absolute; inset: 12px 0; border-radius: 50%; background: radial-gradient(ellipse, rgba(174,199,129,.5), rgba(174,199,129,0) 68%); animation: listing-glow-pulse 4s ease-in-out infinite; }
+.listing-hero-icon { position: absolute; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.76); box-shadow: 0 18px 34px rgba(37,48,35,.18); }
+.listing-hero-icon-main { top: 28px; right: 38px; width: 112px; height: 112px; transform: rotate(7deg); border-radius: 32px; background: #253023; color: #dfff6c; animation: listing-icon-float 4.2s ease-in-out infinite; }
+.listing-hero-icon-tag { top: 14px; left: 10px; width: 62px; height: 62px; transform: rotate(-10deg); border-radius: 20px; background: rgba(255,255,255,.94); color: #71864f; animation: listing-icon-float 3.8s .3s ease-in-out infinite reverse; }
+.listing-hero-sparkle { position: absolute; right: 4px; bottom: 8px; display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: #dfff6c; color: #253023; box-shadow: 0 10px 24px rgba(37,48,35,.14); animation: listing-sparkle-drift 3.2s ease-in-out infinite; }
+@keyframes listing-copy-enter { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes listing-art-enter { from { opacity: 0; transform: translateX(18px) scale(.92); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes listing-icon-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+@keyframes listing-glow-pulse { 0%,100% { opacity: .6; scale: .94; } 50% { opacity: 1; scale: 1.06; } }
+@keyframes listing-sparkle-drift { 0%,100% { translate: 0 0; rotate: 0deg; } 50% { translate: 0 -7px; rotate: 12deg; } }
+.listing-intro-deals .listing-hero-icon-main { background: #536647; color: #f0ffb3; }
+.listing-intro-deals .listing-hero-icon-tag { color: #536647; }
+.listing-intro-stores .listing-hero-icon-main { background: #536647; color: #f0ffb3; }
+.listing-intro-stores .listing-hero-icon-tag { color: #536647; }
+@media (prefers-reduced-motion: reduce) { .listing-intro-copy, .listing-hero-art, .listing-hero-glow, .listing-hero-icon, .listing-hero-sparkle { animation: none !important; } }
 .listing-controls { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
-.listing-pagination-row { display: flex; min-width: 0; align-items: center; gap: 10px; }
-.listing-pagination-row > div { display: flex; min-width: 0; align-items: center; gap: 8px; overflow-x: auto; }
+.listing-pagination-row { display: flex; min-width: 0; align-items: center; gap: 10px; flex-wrap: wrap; }
+.listing-pagination-row > div { display: flex; min-width: 0; align-items: center; gap: 8px; flex-wrap: wrap; }
 .listing-view-controls { gap: 8px; overflow-x: auto; }
 .listing-pagination-row a, .listing-view-controls a { border-color: #dce3d4; }
 .listing-pagination-row a:hover, .listing-view-controls a:hover { border-color: #82986d; }
@@ -440,7 +459,8 @@ body { background: #f6f5ef; }
 header.sticky { border-bottom: 1px solid #e0e5d8; }
 header.sticky nav a { font-weight: 700; }
 @media (min-width: 768px) { .listing-controls { flex-direction: row; align-items: center; justify-content: space-between; } }
-@media (max-width: 767px) { .listing-page { padding-top: 20px; padding-bottom: 60px; } .listing-intro { padding: 35px 22px; } }
+@media (max-width: 767px) { .listing-page { padding-top: 20px; padding-bottom: 60px; } .listing-intro { min-height: 205px; gap: 8px; padding: 28px 22px; border-radius: 20px; } .listing-intro .listing-intro-eyebrow { gap: 6px; margin-bottom: 12px; padding: 6px 9px; font-size: .61rem; letter-spacing: .07em; } .listing-intro h1 { font-size: clamp(2.45rem,8vw,3.55rem); } .listing-intro .listing-intro-description { margin-top: 12px; font-size: .92rem; line-height: 1.5; } .listing-hero-art { width: 96px; height: 132px; flex: 0 0 96px; margin-right: -6px; } .listing-hero-icon-main { top: 28px; right: 0; width: 76px; height: 76px; border-radius: 24px; } .listing-hero-icon-main svg { width: 32px; height: 32px; } .listing-hero-icon-tag { top: 8px; left: -2px; width: 44px; height: 44px; border-radius: 15px; } .listing-hero-icon-tag svg { width: 19px; height: 19px; } .listing-hero-sparkle { right: -2px; bottom: 8px; width: 34px; height: 34px; } .listing-hero-sparkle svg { width: 18px; height: 18px; } }
+@media (max-width: 380px) { .listing-intro { gap: 4px; padding-inline: 16px; } .listing-hero-art { width: 76px; flex-basis: 76px; } .listing-hero-icon-main { width: 66px; height: 66px; } }
 
 /* Admin keeps all forms and route behavior; these rules only reskin surfaces. */
 .admin-shell { background: #f3f5ed; color: #253023; }
