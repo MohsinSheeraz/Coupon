@@ -19,7 +19,13 @@
                         <a href="/coupons" class="transition-colors hover:text-citrus">Coupons</a>
                     </li>
                     <li>
+                        <a href="/deals" class="transition-colors hover:text-citrus">Deals</a>
+                    </li>
+                    <li>
                         <a href="/stores" class="transition-colors hover:text-citrus">Stores</a>
+                    </li>
+                    <li>
+                        <a href="/contact" class="transition-colors hover:text-citrus">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -38,7 +44,7 @@
             <div>
                 <h3 class="mb-4 font-display text-base font-semibold text-white">Contact</h3>
                 <ul class="space-y-2.5">
-                    <li><a href="mailto:support@dealzycoup.com">support@dealzycoup.com</a></li>
+                    <li><a href="mailto:info@dealzycoup.com">info@dealzycoup.com</a></li>
                     <li><a href="tel:+923121069685">+92 312 1069685</a></li>
                 </ul>
             </div>

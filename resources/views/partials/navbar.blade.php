@@ -4,6 +4,7 @@
         ['href' => '/coupons', 'label' => 'Coupons'],
         ['href' => '/deals', 'label' => 'Deals'],
         ['href' => '/stores', 'label' => 'Stores'],
+        ['href' => '/contact', 'label' => 'Contact'],
     ];
     $currentPath = '/'.ltrim(request()->path(), '/');
     $isActive = fn (string $href) => $href === '/' ? $currentPath === '/' : str_starts_with($currentPath, $href);

@@ -15,6 +15,7 @@ return [
     */
 
     'default' => env('MAIL_MAILER', 'log'),
+    'contact_to' => env('MAIL_TO', 'info@dealzycoup.com'),
 
     /*
     |--------------------------------------------------------------------------

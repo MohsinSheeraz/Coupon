@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\SyncAdmin;
+use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,7 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([SyncAdmin::class])
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias(['admin' => EnsureAdmin::class]);
+        $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
+
         // Public tracking calls sent by site.js (no forms, nothing to protect).
         $middleware->preventRequestForgery(except: [
             'api/presence',
