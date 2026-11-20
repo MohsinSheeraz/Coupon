@@ -25,7 +25,7 @@ class AdminLoginController extends Controller
         if (! $this->isConfigured()) {
             return response()->view('admin.login', [
                 'configured' => false,
-                'setupError' => 'Admin sign-in is unavailable. Configure ADMIN_USERNAME and ADMIN_PASSWORD, then run php artisan admin:sync.',
+                'setupError' => 'Admin sign-in is unavailable. Configure Email and Password, then run php artisan admin:sync.',
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 

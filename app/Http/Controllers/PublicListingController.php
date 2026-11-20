@@ -27,7 +27,7 @@ class PublicListingController extends Controller
         $view = $this->viewMode($request);
         $query = Store::query()
             ->with(['categories'])
-            ->withOfferCounts()
+            ->withAvailableOfferCounts()
             ->orderBy('name');
 
         if ($category !== '') {
@@ -52,7 +52,7 @@ class PublicListingController extends Controller
 
         $stores = Store::query()
             ->with('categories')
-            ->withOfferCounts()
+            ->withAvailableOfferCounts()
             ->where(function ($stores) use ($query) {
                 $stores->where('name', 'like', "%{$query}%")
                     ->orWhereHas('categories', fn ($categories) => $categories->where('name', 'like', "%{$query}%"));
@@ -62,6 +62,7 @@ class PublicListingController extends Controller
 
         $coupons = Coupon::query()
             ->with('store')
+            ->available()
             ->where(function ($coupons) use ($query) {
                 $coupons->where('title', 'like', "%{$query}%")
                     ->orWhere('description', 'like', "%{$query}%")
@@ -78,6 +79,7 @@ class PublicListingController extends Controller
         $view = $this->viewMode($request);
         $query = Coupon::query()
             ->with('store')
+            ->available()
             ->where('type', $type)
             ->latest();
 

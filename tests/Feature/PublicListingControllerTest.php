@@ -54,6 +54,78 @@ class PublicListingControllerTest extends TestCase
             ->assertDontSee('A special deal');
     }
 
+    public function test_public_offer_pages_and_search_hide_expired_offers_but_keep_offers_expiring_today(): void
+    {
+        $this->travelTo('2026-11-20 12:00:00');
+        $store = Store::query()->create(['name' => 'Example Store', 'slug' => 'example-store']);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'November coupon still valid',
+            'code' => 'NOV20',
+            'expiry_date' => '2026-11-20',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'November expired coupon',
+            'code' => 'OLD20',
+            'expiry_date' => '2026-11-19',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'November deal still valid',
+            'expiry_date' => '2026-11-20',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'November expired deal',
+            'expiry_date' => '2026-11-19',
+        ]);
+
+        $this->get(route('coupons.index'))
+            ->assertOk()
+            ->assertSee('November coupon still valid')
+            ->assertDontSee('November expired coupon');
+
+        $this->get(route('deals.index'))
+            ->assertOk()
+            ->assertSee('November deal still valid')
+            ->assertDontSee('November expired deal');
+
+        $this->get(route('search', ['q' => 'November']))
+            ->assertOk()
+            ->assertSee('November coupon still valid')
+            ->assertSee('November deal still valid')
+            ->assertDontSee('November expired coupon')
+            ->assertDontSee('November expired deal');
+    }
+
+    public function test_public_store_counts_exclude_expired_coupons_and_deals(): void
+    {
+        $this->travelTo('2026-11-20 12:00:00');
+        $store = Store::query()->create(['name' => 'Example Store', 'slug' => 'example-store']);
+
+        foreach ([
+            ['type' => 'code', 'title' => 'Available coupon', 'expiry_date' => '2026-11-20'],
+            ['type' => 'code', 'title' => 'Expired coupon', 'expiry_date' => '2026-11-19'],
+            ['type' => 'deal', 'title' => 'Available deal', 'expiry_date' => '2026-11-20'],
+            ['type' => 'deal', 'title' => 'Expired deal', 'expiry_date' => '2026-11-19'],
+        ] as $offer) {
+            Coupon::query()->create(['store_id' => $store->id, ...$offer]);
+        }
+
+        $this->get(route('stores.index'))
+            ->assertOk()
+            ->assertViewHas('stores', function ($stores) use ($store): bool {
+                $listedStore = $stores->firstWhere('id', $store->id);
+
+                return $listedStore->coupon_count === 1 && $listedStore->deal_count === 1;
+            });
+    }
+
     public function test_store_listing_filters_using_normalized_category_name(): void
     {
         $category = Category::query()->create(['name' => 'Fashion', 'key' => 'fashion']);

@@ -17,12 +17,13 @@ class HomeController extends Controller
                 ->orderBy('name')
                 ->get(),
             'stores' => Store::query()
-                ->withOfferCounts()
+                ->withAvailableOfferCounts()
                 ->orderByDesc('coupon_count')
                 ->limit(6)
                 ->get(),
             'coupons' => Coupon::query()
                 ->with('store')
+                ->available()
                 ->orderByDesc('used_count')
                 ->limit(6)
                 ->get(),

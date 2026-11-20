@@ -18,7 +18,7 @@ class SyncAdmin extends Command
         $password = config('admin.password');
 
         if (! is_string($username) || trim($username) === '' || ! is_string($password) || trim($password) === '') {
-            $this->error('Set ADMIN_USERNAME and ADMIN_PASSWORD in the local environment first.');
+            $this->error('Set Email and Password in the local environment first.');
 
             return self::FAILURE;
         }

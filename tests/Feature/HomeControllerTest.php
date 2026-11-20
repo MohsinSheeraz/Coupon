@@ -14,6 +14,7 @@ class HomeControllerTest extends TestCase
 
     public function test_homepage_renders_active_categories_popular_stores_and_trending_coupons(): void
     {
+        $this->travelTo('2026-11-20 12:00:00');
         $store = Store::query()->create([
             'name' => 'Example Store',
             'slug' => 'example-store',
@@ -36,6 +37,20 @@ class HomeControllerTest extends TestCase
             'code' => 'SAVE20',
             'used_count' => 12,
         ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'Expired homepage coupon',
+            'expiry_date' => '2026-11-19',
+            'used_count' => 100,
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'Expired homepage deal',
+            'expiry_date' => '2026-11-19',
+            'used_count' => 99,
+        ]);
 
         $this->get('/')
             ->assertOk()
@@ -44,6 +59,8 @@ class HomeControllerTest extends TestCase
             ->assertDontSee('Archived')
             ->assertSee('Example Store')
             ->assertSee('Save on your next order')
+            ->assertDontSee('Expired homepage coupon')
+            ->assertDontSee('Expired homepage deal')
             ->assertSee('SA••••');
     }
 }

@@ -30,6 +30,15 @@ class AdminDashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $expiredOfferCount = Coupon::query()->expired()->count();
+        $expiredOffers = Coupon::query()
+            ->expired()
+            ->with('store:id,name')
+            ->orderByDesc('expiry_date')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
         $topStores = Store::query()
             ->withOfferCounts()
             ->with('categories')
@@ -38,7 +47,7 @@ class AdminDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', compact('recentCoupons', 'stats', 'topStores'));
+        return view('admin.dashboard', compact('expiredOfferCount', 'expiredOffers', 'recentCoupons', 'stats', 'topStores'));
     }
 
     public function presence(): JsonResponse

@@ -32,6 +32,41 @@
             @endforeach
         </div>
 
+        @if ($expiredOfferCount > 0)
+            <section class="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-950" role="status"
+                aria-labelledby="expired-offers-title">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h3 id="expired-offers-title" class="text-lg font-semibold">Expired offers need attention</h3>
+                        <p class="text-sm">{{ $expiredOfferCount }} expired {{ \Illuminate\Support\Str::plural('offer', $expiredOfferCount) }} found.</p>
+                    </div>
+                    <div class="flex gap-2 text-sm font-semibold">
+                        <a href="{{ route('admin.coupons.index') }}" class="underline underline-offset-2">Coupons</a>
+                        <a href="{{ route('admin.deals.index') }}" class="underline underline-offset-2">Deals</a>
+                    </div>
+                </div>
+                <ul class="space-y-2">
+                    @foreach ($expiredOffers as $offer)
+                        <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200/80 bg-white/70 px-3 py-2">
+                            <div>
+                                <p class="font-medium">{{ $offer->title }}</p>
+                                <p class="text-sm text-red-900/70">
+                                    {{ $offer->type === 'deal' ? 'Deal' : 'Coupon' }}
+                                    · {{ $offer->store?->name }}
+                                    · Expired {{ $offer->expiry_date }}
+                                </p>
+                            </div>
+                            <a href="{{ route($offer->type === 'deal' ? 'admin.deals.edit' : 'admin.coupons.edit', $offer) }}"
+                                class="text-sm font-semibold underline underline-offset-2">Edit</a>
+                        </li>
+                    @endforeach
+                </ul>
+                @if ($expiredOfferCount > $expiredOffers->count())
+                    <p class="mt-2 text-sm">Showing the 5 most recently expired offers.</p>
+                @endif
+            </section>
+        @endif
+
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <section data-slot="card" class="rounded-2xl p-4">
                 <h3 class="mb-3 text-lg font-semibold">Recent Coupons</h3>

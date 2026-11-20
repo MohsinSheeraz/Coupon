@@ -13,6 +13,7 @@ class PublicStoreControllerTest extends TestCase
 
     public function test_store_page_displays_coupons_and_deals_in_separate_tabs(): void
     {
+        $this->travelTo('2026-11-20 12:00:00');
         $store = Store::query()->create(['name' => 'Example Store', 'slug' => 'example-store']);
         Coupon::query()->create([
             'store_id' => $store->id,
@@ -25,12 +26,26 @@ class PublicStoreControllerTest extends TestCase
             'type' => 'deal',
             'title' => 'Deal for this store',
         ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'Expired coupon for this store',
+            'expiry_date' => '2026-11-19',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'Expired deal for this store',
+            'expiry_date' => '2026-11-19',
+        ]);
 
         $this->get(route('stores.show', $store))
             ->assertOk()
             ->assertSee('Example Store')
             ->assertSee('Coupon for this store')
             ->assertSee('Deal for this store')
+            ->assertDontSee('Expired coupon for this store')
+            ->assertDontSee('Expired deal for this store')
             ->assertSee('store-coupons-panel')
             ->assertSee('store-deals-panel');
     }

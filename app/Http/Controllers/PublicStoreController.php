@@ -14,6 +14,7 @@ class PublicStoreController extends Controller
         $store->load('categories');
         $coupons = $store->offers()
             ->with('store')
+            ->available()
             ->codes()
             ->latest()
             ->orderByDesc('id')
@@ -21,6 +22,7 @@ class PublicStoreController extends Controller
             ->appends(['tab' => 'coupons']);
         $deals = $store->offers()
             ->with('store')
+            ->available()
             ->deals()
             ->latest()
             ->orderByDesc('id')

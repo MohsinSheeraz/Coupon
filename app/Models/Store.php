@@ -29,4 +29,12 @@ class Store extends Model
             'offers as deal_count' => fn ($q) => $q->where('type', 'deal'),
         ]);
     }
+
+    public function scopeWithAvailableOfferCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'offers as coupon_count' => fn ($q) => $q->available()->where('type', '!=', 'deal'),
+            'offers as deal_count' => fn ($q) => $q->available()->where('type', 'deal'),
+        ]);
+    }
 }

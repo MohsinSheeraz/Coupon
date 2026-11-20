@@ -53,6 +53,43 @@ class AdminDashboardControllerTest extends TestCase
             ->assertDontSee('<button type="button" data-admin-back', false);
     }
 
+    public function test_admin_dashboard_notifies_about_expired_coupons_and_deals(): void
+    {
+        $this->travelTo('2026-11-20 12:00:00');
+        config(['admin.username' => 'admin@example.com']);
+        $admin = User::factory()->create(['email' => 'admin@example.com']);
+        $store = Store::query()->create(['name' => 'Example Store', 'slug' => 'example-store']);
+        $expiredCoupon = Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'Expired coupon notification',
+            'expiry_date' => '2026-11-19',
+        ]);
+        $expiredDeal = Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'Expired deal notification',
+            'expiry_date' => '2026-11-19',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'Deal valid today',
+            'expiry_date' => '2026-11-20',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Expired offers need attention')
+            ->assertSee('2 expired offers found')
+            ->assertSee('Expired coupon notification')
+            ->assertSee('Expired deal notification')
+            ->assertSee(route('admin.coupons.edit', $expiredCoupon), false)
+            ->assertSee(route('admin.deals.edit', $expiredDeal), false)
+            ->assertDontSee('Deal valid today');
+    }
+
     public function test_admin_presence_endpoint_returns_the_active_visitor_count(): void
     {
         config(['admin.username' => 'admin@example.com']);

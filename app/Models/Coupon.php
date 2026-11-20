@@ -32,6 +32,20 @@ class Coupon extends Model
         return $query->where('type', 'deal');
     }
 
+    public function scopeAvailable(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->whereNull('expiry_date')
+                ->orWhere('expiry_date', '>=', now('UTC')->toDateString());
+        });
+    }
+
+    public function scopeExpired(Builder $query): Builder
+    {
+        return $query->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', now('UTC')->toDateString());
+    }
+
     /** "Today" / "Yesterday" / "Mar 4, 2026", worked out from created_at. */
     public function getVerifiedTimeAttribute(): string
     {

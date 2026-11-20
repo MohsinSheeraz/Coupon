@@ -26,7 +26,7 @@
 
             @if (! $configured)
                 <p class="rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100" role="status">
-                    Admin access is not configured. Set ADMIN_USERNAME and ADMIN_PASSWORD in your private environment, then run <code>php artisan admin:sync</code>.
+                    Admin access is not configured. Set Email and Password in your private environment, then run <code>php artisan admin:sync</code>.
                 </p>
             @endif
             @if (isset($setupError))
