@@ -28,6 +28,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'meta' => [
+        'pixel_id' => env('META_PIXEL_ID'),
+        'access_token' => env('META_ACCESS_TOKEN'),
+        'test_event_code' => env('META_TEST_EVENT_CODE'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v21.0'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

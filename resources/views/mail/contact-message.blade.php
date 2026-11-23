@@ -1,4 +1,4 @@
 Name: {{ $name }}
 Email: {{ $email }}
 
-{{ $message }}
+{{ $messageBody }}

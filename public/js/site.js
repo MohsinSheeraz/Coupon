@@ -195,13 +195,24 @@
 
       offerDialog.showModal();
       if (offerId) {
+        var metaEventId = (window.crypto && window.crypto.randomUUID)
+          ? window.crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(16).slice(2);
+        if (typeof window.fbq === "function") {
+          window.fbq("track", "InitiateCheckout", {
+            content_type: "offer",
+            content_name: offerTitle,
+            content_ids: [String(offerId)]
+          }, { eventID: metaEventId });
+        }
         fetch("/coupons/" + encodeURIComponent(offerId) + "/increment", {
           method: "POST",
           credentials: "same-origin",
           headers: {
             "Accept": "application/json",
             "X-CSRF-TOKEN": csrfToken ? csrfToken.content : ""
-          }
+          },
+          body: new URLSearchParams({ event_id: metaEventId })
         }).then(function (response) {
           if (!response.ok) throw new Error("Offer usage request failed (" + response.status + ")");
         }).catch(function (error) {

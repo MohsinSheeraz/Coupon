@@ -23,7 +23,7 @@ class ContactMessage extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: [new Address(config('mail.from.address'), 'DealzyCoup')],
+            from: new Address(config('mail.from.address'), 'DealzyCoup'),
             replyTo: [new Address($this->email, $this->name)],
             subject: '[DealzyCoup Contact] '.$this->messageSubject,
         );
@@ -36,7 +36,7 @@ class ContactMessage extends Mailable
             with: [
                 'name' => $this->name,
                 'email' => $this->email,
-                'message' => $this->body,
+                'messageBody' => $this->body,
             ],
         );
     }

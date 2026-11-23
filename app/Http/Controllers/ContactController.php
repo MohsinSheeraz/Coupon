@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ContactMessage;
+use App\Services\MetaConversionsApi;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -18,7 +20,7 @@ class ContactController extends Controller
         return view('pages.contact');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, MetaConversionsApi $meta): RedirectResponse
     {
         if ($request->filled('company')) {
             throw ValidationException::withMessages([
@@ -57,6 +59,11 @@ class ContactController extends Controller
                 ->withErrors(['contact' => 'We could not send your message right now. Please try again later.']);
         }
 
-        return to_route('contact')->with('status', 'Thanks! Your message has been sent.');
+        $leadEventId = (string) Str::uuid();
+        $meta->send('Lead', $request, $leadEventId, ['content_name' => 'Contact form'], $validated['email']);
+
+        return to_route('contact')
+            ->with('status', 'Thanks! Your message has been sent.')
+            ->with('meta_lead_event_id', $leadEventId);
     }
 }

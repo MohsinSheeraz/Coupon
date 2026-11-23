@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Store;
+use App\Services\MetaConversionsApi;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -45,10 +46,14 @@ class PublicListingController extends Controller
         return view('pages.stores', compact('stores', 'category', 'view'));
     }
 
-    public function search(Request $request): View
+    public function search(Request $request, MetaConversionsApi $meta): View
     {
         $queryValue = $request->query('q', '');
         $query = is_string($queryValue) ? trim($queryValue) : '';
+
+        if ($query !== '') {
+            $meta->track('Search', $request, ['search_string' => mb_substr($query, 0, 100)]);
+        }
 
         $stores = Store::query()
             ->with('categories')

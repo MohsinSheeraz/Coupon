@@ -43,6 +43,26 @@ class ContactControllerTest extends TestCase
         });
     }
 
+    public function test_contact_message_is_delivered_through_a_real_mailer(): void
+    {
+        config(['mail.default' => 'array', 'mail.from.address' => 'noreply@dealzycoup.com']);
+
+        $this->post(route('contact.store'), [
+            'name' => 'Taylor Tester',
+            'email' => 'taylor@example.com',
+            'subject' => 'Question about a coupon',
+            'message' => 'Could you help me understand this coupon?',
+            'company' => '',
+        ])
+            ->assertRedirect(route('contact'))
+            ->assertSessionHas('status', 'Thanks! Your message has been sent.');
+
+        $sentMessages = app('mailer')->getSymfonyTransport()->messages();
+
+        $this->assertCount(1, $sentMessages);
+        $this->assertSame('noreply@dealzycoup.com', $sentMessages->first()->getEnvelope()->getSender()->getAddress());
+    }
+
     public function test_contact_form_rejects_invalid_input_without_sending(): void
     {
         Mail::fake();
