@@ -4,13 +4,22 @@
 
 @section('content')
     <div class="animate-fadeIn">
-        <div class="mb-4 flex items-center justify-between gap-4">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 class="gradient-text text-3xl font-bold">Stores</h2>
-            <a href="{{ route('admin.stores.create') }}"
-                class="inline-flex items-center gap-2 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700">
-                <x-icon name="plus" class="h-4 w-4" />
-                Add Store
-            </a>
+            <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                @include('partials.admin-table-search', [
+                    'action' => route('admin.stores.index'),
+                    'id' => 'admin-stores-search',
+                    'label' => 'Search stores',
+                    'placeholder' => 'Search stores',
+                    'search' => $search,
+                ])
+                <a href="{{ route('admin.stores.create') }}"
+                    class="inline-flex items-center gap-2 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700">
+                    <x-icon name="plus" class="h-4 w-4" />
+                    Add Store
+                </a>
+            </div>
         </div>
 
         @if (session('status'))
@@ -96,7 +105,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-12 text-center text-gray-500">No stores have been added yet.</td>
+                                <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+                                    {{ $search !== '' ? 'No stores match your search.' : 'No stores have been added yet.' }}
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

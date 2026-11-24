@@ -11,10 +11,19 @@
                     <h2 class="text-3xl font-bold">{{ ucfirst($resource) }}</h2>
                     <p class="mt-2 text-sm text-gray-600">Manage {{ $resource }} and their store assignments.</p>
                 </div>
-                <a href="{{ route('admin.'.$resource.'.create') }}" class="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800">
-                    <x-icon name="plus" class="h-4 w-4" />
-                    New {{ $type === 'code' ? 'Coupon' : 'Deal' }}
-                </a>
+                <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                    @include('partials.admin-table-search', [
+                        'action' => route('admin.'.$resource.'.index'),
+                        'id' => 'admin-'.$resource.'-search',
+                        'label' => 'Search '.$resource,
+                        'placeholder' => 'Search '.$resource,
+                        'search' => $search,
+                    ])
+                    <a href="{{ route('admin.'.$resource.'.create') }}" class="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800">
+                        <x-icon name="plus" class="h-4 w-4" />
+                        New {{ $type === 'code' ? 'Coupon' : 'Deal' }}
+                    </a>
+                </div>
             </div>
         </header>
 
@@ -84,7 +93,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $type === 'code' ? 6 : 5 }}" class="px-4 py-12 text-center text-gray-500">No {{ $resource }} yet.</td>
+                        <td colspan="{{ $type === 'code' ? 6 : 5 }}" class="px-4 py-12 text-center text-gray-500">
+                            {{ $search !== '' ? 'No '.$resource.' match your search.' : 'No '.$resource.' yet.' }}
+                        </td>
                     </tr>
                 @endforelse
                     </tbody>

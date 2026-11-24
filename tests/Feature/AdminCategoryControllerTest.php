@@ -53,6 +53,22 @@ class AdminCategoryControllerTest extends TestCase
             ->assertSee('Assigned stores');
     }
 
+    public function test_category_listing_searches_category_and_assigned_store_names(): void
+    {
+        $this->signInAsAdmin();
+        $category = Category::query()->create(['name' => 'Travel', 'key' => 'travel']);
+        $category->stores()->attach(
+            Store::query()->create(['name' => 'Northstar Travel', 'slug' => 'northstar-travel'])
+        );
+        Category::query()->create(['name' => 'Electronics', 'key' => 'electronics']);
+
+        $this->get(route('admin.categories.index', ['search' => 'Northstar']))
+            ->assertOk()
+            ->assertSee('Travel')
+            ->assertDontSee('Electronics')
+            ->assertSee('name="search"', false);
+    }
+
     public function test_category_listing_paginates_ten_records_per_page(): void
     {
         $this->signInAsAdmin();

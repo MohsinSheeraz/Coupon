@@ -11,10 +11,19 @@
                     <h2 class="text-3xl font-bold">Categories</h2>
                     <p class="mt-2 text-sm text-gray-600">Manage names and images used by store search and the homepage slider.</p>
                 </div>
-                <a href="{{ route('admin.categories.create') }}" class="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800">
-                    <x-icon name="plus" class="h-4 w-4" />
-                    New Category
-                </a>
+                <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                    @include('partials.admin-table-search', [
+                        'action' => route('admin.categories.index'),
+                        'id' => 'admin-categories-search',
+                        'label' => 'Search categories',
+                        'placeholder' => 'Search categories',
+                        'search' => $search,
+                    ])
+                    <a href="{{ route('admin.categories.create') }}" class="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800">
+                        <x-icon name="plus" class="h-4 w-4" />
+                        New Category
+                    </a>
+                </div>
             </div>
         </header>
 
@@ -107,7 +116,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-12 text-center text-gray-500">No categories yet.</td>
+                        <td colspan="5" class="px-4 py-12 text-center text-gray-500">
+                            {{ $search !== '' ? 'No categories match your search.' : 'No categories yet.' }}
+                        </td>
                     </tr>
                 @endforelse
                     </tbody>

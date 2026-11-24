@@ -7,24 +7,40 @@ use App\Http\Requests\Admin\StoreRequest;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Store;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use RuntimeException;
 
 class StoreController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = $request->query('search');
+        $search = is_string($search) ? trim($search) : '';
+        $pattern = '%'.$search.'%';
+
         $stores = Store::query()
+            ->when($search !== '', function (Builder $query) use ($pattern): void {
+                $query->where(function (Builder $query) use ($pattern): void {
+                    $query->where('name', 'like', $pattern)
+                        ->orWhere('slug', 'like', $pattern)
+                        ->orWhere('website', 'like', $pattern)
+                        ->orWhereHas('categories', function (Builder $categories) use ($pattern): void {
+                            $categories->where('name', 'like', $pattern);
+                        });
+                });
+            })
             ->withOfferCounts()
             ->with('categories')
             ->orderBy('name')
             ->orderBy('id')
-            ->paginate(14);
+            ->paginate(14)
+            ->withQueryString();
 
-        return view('admin.stores.index', compact('stores'));
+        return view('admin.stores.index', compact('search', 'stores'));
     }
 
     public function create(): View
@@ -103,11 +119,11 @@ class StoreController extends Controller
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->storePublicly('store-logos', 'public');
 
-            if (!is_string($path)) {
+            if (! is_string($path)) {
                 throw new RuntimeException('The store logo could not be saved.');
             }
 
-            return Storage::disk('public')->url($path);
+            return '/storage/'.$path;
         }
 
         if ($request->boolean('remove_logo')) {

@@ -50,6 +50,19 @@ class PublicStoreControllerTest extends TestCase
             ->assertSee('store-deals-panel');
     }
 
+    public function test_store_page_uses_host_relative_urls_for_uploaded_logos(): void
+    {
+        $store = Store::query()->create([
+            'name' => 'Example Store',
+            'slug' => 'example-store',
+            'logo' => 'http://localhost/storage/store-logos/example.png',
+        ]);
+
+        $this->get(route('stores.show', $store))
+            ->assertOk()
+            ->assertSee('src="/storage/store-logos/example.png"', false);
+    }
+
     public function test_store_coupon_tab_paginates_offers_and_keeps_coupons_selected(): void
     {
         $store = Store::query()->create(['name' => 'Paged Store', 'slug' => 'paged-store']);

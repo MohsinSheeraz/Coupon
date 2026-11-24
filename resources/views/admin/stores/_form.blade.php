@@ -31,14 +31,14 @@
             <div class="space-y-5">
                 <div>
                     <label for="name" class="mb-1.5 block text-sm font-medium">Store Name</label>
-                    <input id="name" name="name" value="{{ old('name', $store?->name) }}" maxlength="255" required class="w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5 focus:border-grape focus:outline-none focus:ring-2 focus:ring-grape/20" placeholder="e.g. Amazon">
+                    <input id="name" name="name" data-store-name value="{{ old('name', $store?->name) }}" maxlength="255" required class="w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5 focus:border-grape focus:outline-none focus:ring-2 focus:ring-grape/20" placeholder="e.g. Amazon">
                     @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="slug" class="mb-1.5 block text-sm font-medium">URL Slug</label>
-                    <input id="slug" name="slug" value="{{ old('slug', $store?->slug) }}" maxlength="255" required pattern="[A-Za-z0-9_-]+" class="w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5 focus:border-grape focus:outline-none focus:ring-2 focus:ring-grape/20" placeholder="e.g. amazon">
-                    <p class="mt-1 text-xs text-gray-500">Public store page: /stores/{{ old('slug', $store?->slug ?: 'store-name') }}</p>
+                    <input id="slug" name="slug" data-store-slug value="{{ old('slug', $store?->slug) }}" maxlength="255" required pattern="[A-Za-z0-9_-]+" class="w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5 focus:border-grape focus:outline-none focus:ring-2 focus:ring-grape/20" placeholder="e.g. amazon">
+                    <p class="mt-1 text-xs text-gray-500">Public store page: /stores/<span data-store-slug-preview>{{ old('slug', $store?->slug ?: 'store-name') }}</span></p>
                     @error('slug')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
@@ -82,10 +82,9 @@
                             <p class="text-sm font-medium">Current logo</p>
                             <p class="truncate text-xs text-gray-500">{{ $store->logo }}</p>
                         </div>
-                        <label class="flex items-center gap-2 text-xs text-red-700">
-                            <input type="checkbox" name="remove_logo" value="1" class="rounded border-ink/20">
-                            Remove
-                        </label>
+                        <button type="submit" name="remove_logo" value="1" class="inline-flex shrink-0 items-center rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                            Remove image
+                        </button>
                     </div>
                 @endif
             </div>

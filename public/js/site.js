@@ -18,6 +18,38 @@
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
+  /* Generate the store URL slug from its name until the slug is manually changed. */
+  var storeNameInput = document.querySelector("[data-store-name]");
+  var storeSlugInput = document.querySelector("[data-store-slug]");
+  var storeSlugPreview = document.querySelector("[data-store-slug-preview]");
+  if (storeNameInput && storeSlugInput) {
+    var slugForStoreName = function (value) {
+      return value.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    };
+    var slugWasCustomized = storeSlugInput.value !== ""
+      && storeSlugInput.value !== slugForStoreName(storeNameInput.value);
+    var syncStoreSlug = function () {
+      if (!slugWasCustomized) {
+        storeSlugInput.value = slugForStoreName(storeNameInput.value);
+      }
+      if (storeSlugPreview) {
+        storeSlugPreview.textContent = storeSlugInput.value || "store-name";
+      }
+    };
+
+    storeNameInput.addEventListener("input", syncStoreSlug);
+    storeSlugInput.addEventListener("input", function () {
+      slugWasCustomized = storeSlugInput.value !== ""
+        && storeSlugInput.value !== slugForStoreName(storeNameInput.value);
+      syncStoreSlug();
+    });
+    syncStoreSlug();
+  }
+
   /* Mobile menu */
   var menuButton = document.getElementById("mobile-menu-button");
   var menu = document.getElementById("mobile-menu");

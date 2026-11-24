@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OfferRequest;
 use App\Models\Coupon;
 use App\Models\Store;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,14 +19,29 @@ class OfferController extends Controller
     {
         $type = $this->type($request);
         $resource = $this->resource($type);
+        $search = $request->query('search');
+        $search = is_string($search) ? trim($search) : '';
+        $pattern = '%'.$search.'%';
+
         $offers = Coupon::query()
             ->where('type', $type)
+            ->when($search !== '', function (Builder $query) use ($pattern): void {
+                $query->where(function (Builder $query) use ($pattern): void {
+                    $query->where('title', 'like', $pattern)
+                        ->orWhere('code', 'like', $pattern)
+                        ->orWhereHas('store', function (Builder $store) use ($pattern): void {
+                            $store->where('name', 'like', $pattern)
+                                ->orWhere('slug', 'like', $pattern);
+                        });
+                });
+            })
             ->with('store:id,name')
             ->latest()
             ->orderByDesc('id')
-            ->paginate(14);
+            ->paginate(14)
+            ->withQueryString();
 
-        return view('admin.offers.index', compact('offers', 'resource', 'type'));
+        return view('admin.offers.index', compact('offers', 'resource', 'search', 'type'));
     }
 
     public function create(Request $request): View

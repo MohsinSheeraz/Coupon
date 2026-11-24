@@ -62,6 +62,57 @@ class AdminOfferControllerTest extends TestCase
             ->assertSee('js/site.js', false);
     }
 
+    public function test_coupon_listing_searches_title_code_and_store_without_including_deals(): void
+    {
+        $this->signInAsAdmin();
+        $store = Store::query()->create(['name' => 'Example Store', 'slug' => 'example-store']);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'Spring Savings',
+            'code' => 'SPRING25',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'code',
+            'title' => 'Winter Savings',
+            'code' => 'WINTER25',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $store->id,
+            'type' => 'deal',
+            'title' => 'Spring Deal',
+        ]);
+
+        $this->get(route('admin.coupons.index', ['search' => 'SPRING25']))
+            ->assertOk()
+            ->assertSee('Spring Savings')
+            ->assertDontSee('Winter Savings')
+            ->assertDontSee('Spring Deal');
+    }
+
+    public function test_deal_listing_searches_the_assigned_store_name(): void
+    {
+        $this->signInAsAdmin();
+        $matchingStore = Store::query()->create(['name' => 'Mountain Outfitters', 'slug' => 'mountain-outfitters']);
+        $otherStore = Store::query()->create(['name' => 'City Books', 'slug' => 'city-books']);
+        Coupon::query()->create([
+            'store_id' => $matchingStore->id,
+            'type' => 'deal',
+            'title' => 'Weekend Sale',
+        ]);
+        Coupon::query()->create([
+            'store_id' => $otherStore->id,
+            'type' => 'deal',
+            'title' => 'Clearance',
+        ]);
+
+        $this->get(route('admin.deals.index', ['search' => 'Mountain']))
+            ->assertOk()
+            ->assertSee('Weekend Sale')
+            ->assertDontSee('Clearance');
+    }
+
     public function test_coupon_listing_paginates_ten_records_per_page(): void
     {
         $this->signInAsAdmin();

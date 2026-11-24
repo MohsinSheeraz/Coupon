@@ -51,6 +51,21 @@ class AdminStoreControllerTest extends TestCase
             ->assertSee('Deals');
     }
 
+    public function test_store_listing_searches_store_and_category_names(): void
+    {
+        $this->signInAsAdmin();
+        $category = Category::query()->create(['name' => 'Outdoor Gear', 'key' => 'outdoor-gear']);
+        $matchingStore = Store::query()->create(['name' => 'Trail Shop', 'slug' => 'trail-shop']);
+        $matchingStore->categories()->attach($category);
+        Store::query()->create(['name' => 'City Books', 'slug' => 'city-books']);
+
+        $this->get(route('admin.stores.index', ['search' => 'Outdoor Gear']))
+            ->assertOk()
+            ->assertSee('Trail Shop')
+            ->assertDontSee('City Books')
+            ->assertSee('name="search"', false);
+    }
+
     public function test_store_listing_paginates_ten_records_per_page(): void
     {
         $this->signInAsAdmin();
@@ -114,6 +129,7 @@ class AdminStoreControllerTest extends TestCase
         $store = Store::query()->where('slug', 'logo-store')->firstOrFail();
         $logoPath = str_replace('/storage/', '', (string) parse_url($store->logo, PHP_URL_PATH));
 
+        $this->assertStringStartsWith('/storage/store-logos/', $store->logo);
         Storage::disk('public')->assertExists($logoPath);
     }
 
@@ -175,6 +191,11 @@ class AdminStoreControllerTest extends TestCase
             'slug' => 'logo-store',
             'logo' => 'https://store.example/logo.png',
         ]);
+
+        $this->get(route('admin.stores.edit', $store))
+            ->assertOk()
+            ->assertSee('name="remove_logo" value="1"', false)
+            ->assertSee('Remove image');
 
         $this->put(route('admin.stores.update', $store), [
             'name' => 'Logo Store',

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryRequest;
 use App\Models\Category;
 use App\Models\Store;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -14,16 +16,31 @@ use RuntimeException;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = $request->query('search');
+        $search = is_string($search) ? trim($search) : '';
+        $pattern = '%'.$search.'%';
+
         $categories = Category::query()
+            ->when($search !== '', function (Builder $query) use ($pattern): void {
+                $query->where(function (Builder $query) use ($pattern): void {
+                    $query->where('name', 'like', $pattern)
+                        ->orWhere('key', 'like', $pattern)
+                        ->orWhere('status', 'like', $pattern)
+                        ->orWhereHas('stores', function (Builder $stores) use ($pattern): void {
+                            $stores->where('name', 'like', $pattern);
+                        });
+                });
+            })
             ->withCount('stores')
             ->with('stores:id,name')
             ->orderBy('name')
             ->orderBy('id')
-            ->paginate(14);
+            ->paginate(14)
+            ->withQueryString();
 
-        return view('admin.categories.index', compact('categories'));
+        return view('admin.categories.index', compact('categories', 'search'));
     }
 
     public function create(): View
