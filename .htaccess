@@ -1,4 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Canonical host: send www to the bare domain
+    RewriteCond %{HTTP_HOST} ^www\.dealzycoup\.com$ [NC]
+    RewriteRule ^(.*)$ https://dealzycoup.com/$1 [R=301,L]
+
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

@@ -4,8 +4,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'DealzyCoup - Find the Best Deals')</title>
-    <meta name="description" content="@yield('description', 'Discover the best coupons and deals from your favorite stores')">
+    @php
+        $pageTitle = trim($__env->yieldContent('title', $seoDefaults['title']));
+        $pageDescription = trim($__env->yieldContent('description', $seoDefaults['description']));
+        $canonicalUrl = trim($__env->yieldContent('canonical', url()->current()));
+        $socialImage = trim($__env->yieldContent('og_image', asset('LogoMain.png')));
+    @endphp
+    <title>{!! $pageTitle !!}</title>
+    <meta name="description" content="{!! $pageDescription !!}">
+    <meta name="robots" content="@yield('robots', 'index, follow')">
+    <link rel="canonical" href="{!! $canonicalUrl !!}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="DealzyCoup">
+    <meta property="og:title" content="{!! $pageTitle !!}">
+    <meta property="og:description" content="{!! $pageDescription !!}">
+    <meta property="og:url" content="{!! $canonicalUrl !!}">
+    <meta property="og:image" content="{!! $socialImage !!}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{!! $pageTitle !!}">
+    <meta name="twitter:description" content="{!! $pageDescription !!}">
+    <meta name="twitter:image" content="{!! $socialImage !!}">
     <link rel="icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'DealzyCoup - Find the Best Deals')
+@section('canonical', route('home'))
 
 @php
     $slides = [

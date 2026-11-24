@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Category;
+use App\Models\Setting;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -46,6 +47,18 @@ class AppServiceProvider extends ServiceProvider
                 ];
 
             $view->with('footerCategories', $links);
+        });
+
+        // Default <title> and meta description come from the admin SEO settings.
+        View::composer('layouts.app', function ($view) {
+            $metaTags = Setting::query()->first()?->meta_tags ?? [];
+
+            $view->with('seoDefaults', [
+                'title' => filled($metaTags['title'] ?? null) ? $metaTags['title'] : 'DealzyCoup - Find the Best Deals',
+                'description' => filled($metaTags['description'] ?? null)
+                    ? $metaTags['description']
+                    : 'Find verified coupon codes, promo codes and deals from top online stores. Save more on every order with DealzyCoup.',
+            ]);
         });
     }
 }

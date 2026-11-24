@@ -31,11 +31,23 @@ class PublicListingController extends Controller
             ->withAvailableOfferCounts()
             ->orderBy('name');
 
+        $isKnownCategory = false;
+
         if ($category !== '') {
             $categoryKey = Category::keyFor($category);
 
             if ($categoryKey !== '') {
                 $query->whereHas('categories', fn ($categories) => $categories->where('key', $categoryKey));
+
+                $matchedCategory = Category::query()
+                    ->where('key', $categoryKey)
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($matchedCategory !== null) {
+                    $category = $matchedCategory->name;
+                    $isKnownCategory = true;
+                }
             }
         }
 
@@ -43,7 +55,7 @@ class PublicListingController extends Controller
             ? $query->get()
             : $query->paginate(20)->withQueryString();
 
-        return view('pages.stores', compact('stores', 'category', 'view'));
+        return view('pages.stores', compact('stores', 'category', 'view', 'isKnownCategory'));
     }
 
     public function search(Request $request, MetaConversionsApi $meta): View

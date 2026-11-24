@@ -8,7 +8,17 @@
     };
 @endphp
 
-@section('title', ($category ? $category.' Stores' : 'All Stores').' | DealzyCoup')
+@section('title', ($category ? $category.' Coupons & Deals by Store' : 'All Stores: Coupons & Promo Codes').' | DealzyCoup')
+@section('description', $category
+    ? 'Find '.$category.' stores with verified coupon codes and deals. Compare offers and save on your next '.$category.' purchase with DealzyCoup.'
+    : 'Browse every store on DealzyCoup and find verified coupon codes, promo codes and deals from your favorite brands.')
+@section('canonical', route('stores.index', array_filter([
+    'category' => $category ?: null,
+    'page' => $stores instanceof \Illuminate\Contracts\Pagination\Paginator && $stores->currentPage() > 1 ? $stores->currentPage() : null,
+])))
+@if ($category && ! $isKnownCategory)
+    @section('robots', 'noindex, follow')
+@endif
 
 @section('content')
     <div class="listing-page container mx-auto px-4 py-12">

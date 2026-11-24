@@ -161,4 +161,44 @@ class PublicListingControllerTest extends TestCase
             ->assertSee('Trail Shop')
             ->assertSee('Outdoor gear discount');
     }
+
+    public function test_coupon_listing_canonical_ignores_view_mode_but_keeps_page(): void
+    {
+        $this->get(route('coupons.index', ['view' => 'two']))
+            ->assertOk()
+            ->assertSee('<link rel="canonical" href="'.route('coupons.index').'">', false)
+            ->assertSee('<meta property="og:title" content="Coupon Codes &amp; Promo Codes | DealzyCoup">', false);
+
+        $store = Store::query()->create(['name' => 'Paged Store', 'slug' => 'paged-store']);
+
+        foreach (range(1, 17) as $number) {
+            Coupon::query()->create(['store_id' => $store->id, 'type' => 'code', 'title' => 'Code '.$number, 'code' => 'C'.$number]);
+        }
+
+        $this->get(route('coupons.index', ['page' => 2, 'view' => 'one']))
+            ->assertOk()
+            ->assertSee('<link rel="canonical" href="'.route('coupons.index', ['page' => 2]).'">', false);
+    }
+
+    public function test_category_listing_uses_the_category_name_for_canonical_and_description(): void
+    {
+        Category::query()->create(['name' => 'Home & Living', 'status' => 'active']);
+
+        $this->get('/stores?category=home+living&view=two')
+            ->assertOk()
+            ->assertSee('<link rel="canonical" href="'.e(route('stores.index', ['category' => 'Home & Living'])).'">', false)
+            ->assertSee('Find Home &amp; Living stores with verified coupon codes', false)
+            ->assertSee('<meta name="robots" content="index, follow">', false);
+    }
+
+    public function test_unknown_category_and_search_results_are_not_indexed(): void
+    {
+        $this->get('/stores?category=Pets')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, follow">', false);
+
+        $this->get(route('search', ['q' => 'shoes']))
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, follow">', false);
+    }
 }

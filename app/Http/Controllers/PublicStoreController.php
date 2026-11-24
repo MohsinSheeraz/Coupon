@@ -29,7 +29,12 @@ class PublicStoreController extends Controller
             ->orderByDesc('id')
             ->paginate(16, ['*'], 'deals_page')
             ->appends(['tab' => 'deals']);
-        $activeTab = $request->query('tab') === 'coupons' ? 'coupons' : 'deals';
+        $topOffer = $store->offers()
+            ->available()
+            ->orderByDesc('used_count')
+            ->latest()
+            ->first();
+        $activeTab = $this->activeTab($request->query('tab'), $coupons->total(), $deals->total());
 
         $meta->track('ViewContent', $request, [
             'content_type' => 'store',
@@ -37,7 +42,19 @@ class PublicStoreController extends Controller
             'content_ids' => [(string) $store->slug],
         ]);
 
-        return view('pages.store', compact('activeTab', 'coupons', 'deals', 'store'));
+        return view('pages.store', compact('activeTab', 'coupons', 'deals', 'store', 'topOffer'));
+    }
+
+    /**
+     * Honour an explicit tab; otherwise open deals, unless only coupons exist.
+     */
+    private function activeTab(mixed $requestedTab, int $couponCount, int $dealCount): string
+    {
+        if (in_array($requestedTab, ['coupons', 'deals'], true)) {
+            return $requestedTab;
+        }
+
+        return $dealCount === 0 && $couponCount > 0 ? 'coupons' : 'deals';
     }
 
     public function incrementUsage(Request $request, Coupon $coupon, MetaConversionsApi $meta): array

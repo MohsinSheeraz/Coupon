@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Search Results | DealzyCoup')
+@section('robots', 'noindex, follow')
 
 @section('content')
     <div class="listing-page container mx-auto px-4 py-12">

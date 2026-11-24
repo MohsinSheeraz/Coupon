@@ -14,7 +14,11 @@
     };
 @endphp
 
-@section('title', $title . ' | DealzyCoup')
+@section('title', ($isCouponPage ? 'Coupon Codes & Promo Codes' : 'Online Deals & Discounts') . ' | DealzyCoup')
+@section('description', $isCouponPage
+    ? 'Browse the latest verified coupon codes and promo codes from top online stores. Copy a code and save at checkout with DealzyCoup.'
+    : 'Browse the latest online deals, sales and discounts from top stores. No code needed: click through and save with DealzyCoup.')
+@section('canonical', route($isCouponPage ? 'coupons.index' : 'deals.index', $offers instanceof \Illuminate\Contracts\Pagination\Paginator && $offers->currentPage() > 1 ? ['page' => $offers->currentPage()] : []))
 
 @section('content')
     <div class="listing-page container mx-auto px-4 py-12">
