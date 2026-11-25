@@ -76,6 +76,11 @@
                         <td data-slot="table-cell" class="px-4 py-4 text-ink">{{ number_format($offer->used_count) }}</td>
                         <td data-slot="table-cell" class="admin-table-actions px-4 py-4">
                             <div class="flex justify-end gap-2">
+                                <a href="{{ route('stores.show', ['store' => $offer->store, 'tab' => $resource]) }}" target="_blank" rel="noopener noreferrer"
+                                    aria-label="View {{ $offer->title }}" title="View"
+                                    class="grid size-9 place-items-center rounded-lg border border-[#dde5d6] text-teal-800 transition hover:bg-paper">
+                                    <x-icon name="eye" class="h-4 w-4" />
+                                </a>
                                 <a href="{{ route('admin.'.$resource.'.edit', $offer) }}" aria-label="Edit {{ $offer->title }}"
                                     class="grid size-9 place-items-center rounded-lg border border-[#dde5d6] text-teal-800 transition hover:bg-paper">
                                     <x-icon name="pencil" class="h-4 w-4" />

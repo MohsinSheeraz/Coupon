@@ -35,7 +35,7 @@ class OfferController extends Controller
                         });
                 });
             })
-            ->with('store:id,name')
+            ->with('store:id,name,slug')
             ->latest()
             ->orderByDesc('id')
             ->paginate(14)
