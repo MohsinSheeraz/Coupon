@@ -24,6 +24,8 @@
     <meta name="twitter:title" content="{!! $pageTitle !!}">
     <meta name="twitter:description" content="{!! $pageDescription !!}">
     <meta name="twitter:image" content="{!! $socialImage !!}">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6624797118071894" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6624797118071894" crossorigin="anonymous"></script>
     <link rel="icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
